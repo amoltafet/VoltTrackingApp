@@ -17,121 +17,53 @@ import androidx.annotation.NonNull;
  */
 public class Exercises {
     private int id;
-    private String title;
-    private String type;
-    private int imageId;
-    private boolean watched;
+    private int parentId;
+    private String name;
+    private int time;
 
-    /**
-     Sets the videos properties.
-     * @param title the video title.
-     * @param type the type of video.
-     * @param imageId the video imageId.
-     * @param watched if the video has been watched.
-     */
-    public Exercises (String title, String type, int imageId, boolean watched) {
+
+    public Exercises (String name, int time) {
         this.id = -1;
-        this.title = title;
-        this.type = type;
-        this.imageId = imageId;
-        this.watched = watched;
+        this.name = name;
+        this.time = time;
     }
 
-    /**
-     Sets the videos properties.
-     * @param id the id of where the video is located in the SQL database
-     * @param title the video title.
-     * @param type the type of video.
-     * @param imageId the video imageId.
-     * @param watched if the video has been watched.
-     */
-    public Exercises(int id, String title, String type, int imageId, boolean watched) {
+
+    public Exercises (int id, String name, int time) {
         this.id = id;
-        this.title = title;
-        this.type = type;
-        this.imageId = imageId;
-        this.watched = watched;
+        this.name = name;
+        this.time = time;
     }
 
-    /**
-     Gets the video title safely.
-     * @return the video title.
-     */
-    public String getTitle () {
-        return title;
+    public int getId() {
+        return id;
     }
 
-    /**
-     Sets the video title safely.
-     * @param title the video title.
-     */
-    public void setTitle (String title) {
-        this.title = title;
+    public void setId(int id) {
+        this.id = id;
     }
 
-    /**
-     Gets the type of video safely.
-     * @return the type of video.
-     */
-    public String getType () {
-        return type;
+    public int getParentId() {
+        return parentId;
     }
 
-    /**
-     Sets the type of video safely.
-     * @param type the type of video.
-     */
-    public void setType (String type) {
-        this.type = type;
+    public void setParentId(int parentId) {
+        this.parentId = parentId;
     }
 
-    /**
-     Gets the video image Id safely.
-     * @return the video imageId.
-     */
-    public int getImageId () {
-        return imageId;
+    public String getName() {
+        return name;
     }
 
-    /**
-     Sets the video imageId safely.
-     * @param imageId the video imageId.
-     */
-    public void setImageId (int imageId) {
-        this.imageId = imageId;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    /**
-     Gets if the video has been watched safely.
-     * @return if the video has been watched.
-     */
-    public boolean isWatched () {
-        return watched;
+    public int getTime() {
+        return time;
     }
 
-    /**
-     Sets if the video has been watched safely.
-     * @param watched if the video has been watched.
-     */
-    public void setWatched (boolean watched) {
-        this.watched = watched;
-    }
-
-    /**
-     Gets the video id safely.
-     * @return the id safely.
-     */
-    public int getId () {
-        return this.id;
-    }
-
-    /**
-     Prints out a nice string of all of the videos.
-     * @return the videos.
-     */
-    @NonNull
-    @Override
-    public String toString() {
-        return id + String.valueOf(R.string.space) + title;
+    public void setTime(int time) {
+        this.time = time;
     }
 }

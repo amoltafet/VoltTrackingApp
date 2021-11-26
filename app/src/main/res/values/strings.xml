@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Watch List</string>
+    <string name="app_name">My Workout List</string>
     <string name="main_activity_tag">MainActivity</string>
     <string name="series">Series</string>
     <string name="witch_academia">Little Witch Academia</string>

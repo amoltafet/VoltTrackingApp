@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -32,8 +33,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  Main Activity screen with a recyclerview shows a card with an image and a textView. Can add and delete Cards.
@@ -42,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
     static final String TAG = String.valueOf(R.string.main_activity_tag);
     ActivityResultLauncher<Intent> launcher;
     CustomAdapter adapter;
-    VideoOpenHelper helper;
-    VideoList videoList;
+    WorkoutListOpenHelper helper;
+    List<WorkoutList> workoutList;
 
     /**
      Handles the functionality of when the activity is created.
@@ -60,20 +63,24 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
-        helper = new VideoOpenHelper(this);
-        videoList = new VideoList();
-        if (helper.getSelectAllVideos().size() == 0) {
-            videoList.getVideoList().add(new Exercises(getString(R.string.witch_academia), getString(R.string.series), R.drawable.witch, true));
-            videoList.getVideoList().add(new Exercises(getString(R.string.paprika), getString(R.string.movie), R.drawable.paprika, false));
-            videoList.getVideoList().add(new Exercises(getString(R.string.penguin_drum), getString(R.string.series), R.drawable.penguin, true));
-            for (int i = 0; i < videoList.getVideoList().size(); i++) {
-                helper.insertVideo(videoList.getVideoList().get(i));
+        helper = new WorkoutListOpenHelper(this);
+        workoutList = new ArrayList<>();
+        if (helper.getAllWorkoutLists().size() == 0) {
+            List<Exercises> list = new ArrayList<>();
+            list.add(new Exercises("crunch", 45));
+            list.add(new Exercises("rest", 20));
+            list.add(new Exercises("plank", 60));
+
+            workoutList.add(new WorkoutList("Abs", list));
+            workoutList.get(0).getTotalTime();
+            for (int i = 0; i < workoutList.size(); i++) {
+                helper.addWorkoutListItem(workoutList.get(i));
                 adapter.notifyItemChanged(i);
             }
         }
 
-        videoList.setVideoList(helper.getSelectAllVideos());
-        for (int i = 0; i < helper.getSelectAllVideos().size(); i++) {
+        workoutList = helper.getAllWorkoutLists();
+        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
             adapter.notifyItemChanged(i);
         }
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -82,40 +89,35 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
 
-                        String type = data.getStringExtra(getString(R.string.type));
-                        String title = data.getStringExtra(getString(R.string.title));
-                        int imageId = data.getIntExtra(getString(R.string.image_id), 0);
-                        boolean watched = data.getBooleanExtra(getString(R.string.watched), false);
+                        String name = data.getStringExtra("name");
+                        int totalTime = data.getIntExtra("totalTime", 0);
+                        List<Exercises> exercises = data.getParcelableExtra("exerciseList");
                         int position = data.getIntExtra(getString(R.string.position), 0);
 
-                        for (int i = 0; i < videoList.getVideoList().size(); i++) {
+                        for (int i = 0; i < workoutList.size(); i++) {
                             if (position == i) {
                                 // the same card saved
-                                if (!videoList.getVideoList().get(i).getTitle().equals(title)) {
-                                    videoList.getVideoList().get(i).setTitle(title);
-                                    helper.updateVideoById(videoList.getVideoList().get(i));
+                                if (!workoutList.get(i).getName().equals(name)) {
+                                    workoutList.get(i).setName(name);
+                                    helper.updateWorkoutById(workoutList.get(i));
                                     adapter.notifyItemChanged(i);
                                 }
-                                if (!videoList.getVideoList().get(i).getType().equals(type)) {
-                                    helper.updateVideoById(videoList.getVideoList().get(i));
-                                    videoList.getVideoList().get(i).setType(type);
+                                if (!workoutList.get(i).getExercisesList().equals(exercises)) {
+                                    helper.updateWorkoutById(workoutList.get(i));
+                                    workoutList.get(i).setExercisesList(exercises);
                                 }
-                                if (videoList.getVideoList().get(i).getImageId() != imageId) {
-                                    videoList.getVideoList().get(i).setImageId(imageId);
-                                    helper.updateVideoById(videoList.getVideoList().get(i));
-                                    adapter.notifyItemChanged(i);
-                                }
-                                if (!videoList.getVideoList().get(i).isWatched() == watched) {
-                                    videoList.getVideoList().get(i).setWatched(watched);
+                                if (workoutList.get(i).getTotalTime() != totalTime) {
+                                    workoutList.get(i).setTotalTime(totalTime);
+                                    helper.updateWorkoutById(workoutList.get(i));
                                     adapter.notifyItemChanged(i);
                                 }
                             }
                         }
-                        if (position > videoList.getVideoList().size()) {
-                            Exercises exercises = new Exercises(title, type, imageId, watched);
-                            videoList.getVideoList().add(exercises);
-                            helper.insertVideo(exercises);
-                            adapter.notifyItemChanged(videoList.getVideoList().size());
+                        if (position > workoutList.size()) {
+                            WorkoutList workouts = new WorkoutList(name, exercises);
+                            workoutList.add(workouts);
+                            helper.addWorkoutListItem(workouts);
+                            adapter.notifyItemChanged(workoutList.size());
                         }
                     }
                 });
@@ -144,26 +146,26 @@ public class MainActivity extends AppCompatActivity {
         switch (itemId) {
             case R.id.addMenuItem:
                 Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
-                Exercises exercises1 = new Exercises(getString(R.string.empty),getString(R.string.other), R.drawable.image,false);
-                intent.putExtra(getString(R.string.title), exercises1.getTitle());
-                intent.putExtra(getString(R.string.type), exercises1.getType());
-                intent.putExtra(getString(R.string.image_id), exercises1.getImageId());
-                intent.putExtra(getString(R.string.watched), exercises1.isWatched());
-                intent.putExtra(getString(R.string.position), videoList.getVideoList().size()+1);
+                WorkoutList workouts = new WorkoutList("", new ArrayList<>());
+                intent.putExtra("name", workouts.getName());
+                intent.putExtra("totalTime", workouts.getTotalTime());
+                intent.putExtra("exerciseList", (Parcelable) workouts.getExercisesList());
+                intent.putExtra(getString(R.string.position), workoutList.size()+1);
                 launcher.launch(intent);
                 return true;
             case R.id.deleteMenuItem:
-                int initialListSize = videoList.getVideoList().size();
+                int initialListSize = workoutList.size();
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(getString(R.string.delete_item))
                         .setMessage(getString(R.string.like_to_delete))
                         .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
-                            helper.deleteAllVideos();
+                            helper.deleteAllWorkouts();
+                            helper.deleteAllExercises();
                             for (int j = 0; j < initialListSize; j++) {
-                                videoList.getVideoList().remove(0);
+                                workoutList.remove(0);
                                 adapter.notifyItemRemoved(0);
                             }
-                            videoList.getVideoList().clear();
+                            workoutList.clear();
                         })
                         .setNegativeButton(getString(R.string.no), null).show();
                 return true;
@@ -178,14 +180,14 @@ public class MainActivity extends AppCompatActivity {
         boolean multiSelect = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
-        VideoList selectedVideos = new VideoList();
+        List<WorkoutList> selectedVideos = new ArrayList<>();
 
         /**
          Provides functionality for delete, add, and view recycler item.
          */
         class CustomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
-            TextView myText1;
-            ImageView myImage1;
+            TextView workoutName;
+            TextView workoutTime;
             CardView myCardView1;
 
             /**
@@ -194,8 +196,8 @@ public class MainActivity extends AppCompatActivity {
              */
             public CustomViewHolder (@NonNull View itemView) {
                 super(itemView);
-                myText1 = itemView.findViewById(R.id.myText1);
-                myImage1 = itemView.findViewById(R.id.myImage1);
+                workoutName = itemView.findViewById(R.id.workout_name);
+                workoutTime = itemView.findViewById(R.id.workout_time);
                 myCardView1 = itemView.findViewById(R.id.myCardView1);
 
                 itemView.setOnClickListener(this);
@@ -204,32 +206,33 @@ public class MainActivity extends AppCompatActivity {
 
             /**
              Displays the card item.
-             * @param exercises the selected video to show.
+             * @param workouts the selected video to show.
              */
-            public void updateView (Exercises exercises) {
+            public void updateView (WorkoutList workouts) {
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
-                myText1.setText(exercises.getTitle());
-                myImage1.setImageResource(exercises.getImageId());
+                workoutName.setText(workouts.getName());
+                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                Log.d(TAG, "updateView: " + workouts.getTotalTime());
             }
 
             /**
              Selects a video in the recyclerview.
-             * @param exercises the selected video to show.
+             * @param workouts the selected video to show.
              */
-            public void selectItem (Exercises exercises) {
+            public void selectItem (WorkoutList workouts) {
                 if (multiSelect) {
-                    if (selectedVideos.getVideoList().contains(exercises)) {
-                        selectedVideos.getVideoList().remove(exercises);
+                    if (selectedVideos.contains(workouts)) {
+                        selectedVideos.remove(workouts);
                     }
                     else {
-                        selectedVideos.getVideoList().add(exercises);
+                        selectedVideos.add(workouts);
                         myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
                     }
-                    if (selectedVideos.getVideoList().size() == 1) {
-                        actionMode.setTitle(selectedVideos.getVideoList().size() +
+                    if (selectedVideos.size() == 1) {
+                        actionMode.setTitle(selectedVideos.size() +
                                 getString(R.string.item_selected));
                     }
-                    actionMode.setTitle(selectedVideos.getVideoList().size() +
+                    actionMode.setTitle(selectedVideos.size() +
                             getString(R.string.items_selected));
                 }
             }
@@ -243,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean onLongClick (View view) {
                 Log.d(TAG, getString(R.string.on_long_click));
                 MainActivity.this.startActionMode(callbacks);
-                selectItem(videoList.getVideoList().get(getAdapterPosition()));
+                selectItem(workoutList.get(getAdapterPosition()));
                 return true;
             }
 
@@ -254,16 +257,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick (View view) {
                 if (multiSelect) {
-                    selectItem(videoList.getVideoList().get(getAdapterPosition()));
+                    selectItem(workoutList.get(getAdapterPosition()));
                 }
                 else {
                     int position = getAdapterPosition();
                     Log.d(TAG, getString(R.string.on_click_tag) + getAdapterPosition());
                     Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
-                    intent.putExtra(getString(R.string.title), videoList.getVideoList().get(position).getTitle());
-                    intent.putExtra(getString(R.string.type), videoList.getVideoList().get(position).getType());
-                    intent.putExtra(getString(R.string.image_id), videoList.getVideoList().get(position).getImageId());
-                    intent.putExtra(getString(R.string.watched), videoList.getVideoList().get(position).isWatched());
+                    intent.putExtra("name", workoutList.get(position).getName());
+                    intent.putExtra("totalTime", workoutList.get(position).getTotalTime());
+                    intent.putExtra("exerciseList", (Parcelable) workoutList.get(position).getExercisesList());
                     intent.putExtra(getString(R.string.position), position);
                     launcher.launch(intent);
                 }
@@ -314,16 +316,15 @@ public class MainActivity extends AppCompatActivity {
                  */
                 @Override
                 public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
-                    switch (menuItem.getItemId()) {
-                        case R.id.deleteMenuItem:
-                            for (int i = 0; i < videoList.getVideoList().size(); i++) {
-                                if (selectedVideos.getVideoList().contains(videoList.getVideoList().get(i))) {
-                                    videoList.getVideoList().remove(i);
-                                    notifyItemRemoved(i);
-                                }
+                    if (menuItem.getItemId() == R.id.deleteMenuItem) {
+                        for (int i = 0; i < workoutList.size(); i++) {
+                            if (selectedVideos.contains(workoutList.get(i))) {
+                                workoutList.remove(i);
+                                notifyItemRemoved(i);
                             }
-                            actionMode.finish();
-                            return true;
+                        }
+                        actionMode.finish();
+                        return true;
                     }
                     return false;
                 }
@@ -335,12 +336,12 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDestroyActionMode (ActionMode actionMode) {
                     multiSelect = false;
-                    for (Exercises exercises : selectedVideos.getVideoList()) {
-                        helper.deleteSelectVideo(exercises);
+                    for (WorkoutList workouts : selectedVideos) {
+                        helper.deleteWorkout(workouts);
                     }
-                    selectedVideos.getVideoList().clear();
+                    selectedVideos.clear();
 
-                    for (int i = 0; i < videoList.getVideoList().size(); i++) {
+                    for (int i = 0; i < workoutList.size(); i++) {
                         notifyItemChanged(i);
                     }
                 }
@@ -368,9 +369,9 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         public void onBindViewHolder (@NonNull CustomViewHolder holder, int position) {
-            for (int i = 0; i < helper.getSelectAllVideos().size(); i++) {
+            for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
                 if (i == position) {
-                    Exercises exercises = helper.getSelectAllVideos().get(i);// check
+                    WorkoutList exercises = helper.getAllWorkoutLists().get(i);// check
                     holder.updateView(exercises);
                 }
             }
@@ -382,7 +383,7 @@ public class MainActivity extends AppCompatActivity {
          */
         @Override
         public int getItemCount () {
-            return helper.getSelectAllVideos().size();
+            return helper.getAllWorkoutLists().size();
         }
     }
 }
