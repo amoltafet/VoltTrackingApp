@@ -107,7 +107,7 @@ public class VideoDetailActivity extends AppCompatActivity {
                         Intent intent = new Intent();
                         intent.putExtra("name", titleTextView.getText().toString());
                         intent.putExtra("totalTime", totalTimeView.getText().toString());
-                        intent.putExtra("exerciseList", (Parcelable) exerciseList);
+                        intent.putExtra("exerciseList", (ArrayList<Exercises>) exerciseList);
                         intent.putExtra(getString(R.string.position), position);
                         VideoDetailActivity.this.setResult(Activity.RESULT_OK, intent);
                         VideoDetailActivity.this.finish();
