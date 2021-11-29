@@ -196,8 +196,8 @@ public class MainActivity extends AppCompatActivity {
              */
             public CustomViewHolder (@NonNull View itemView) {
                 super(itemView);
-                workoutName = itemView.findViewById(R.id.workout_name);
-                workoutTime = itemView.findViewById(R.id.workout_time);
+                workoutName = itemView.findViewById(R.id.exercise_name);
+                workoutTime = itemView.findViewById(R.id.exercise_time);
                 myCardView1 = itemView.findViewById(R.id.myCardView1);
 
                 itemView.setOnClickListener(this);

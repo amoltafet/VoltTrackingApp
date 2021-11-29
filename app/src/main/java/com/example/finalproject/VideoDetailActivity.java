@@ -15,23 +15,37 @@ package com.example.finalproject;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Parcelable;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  Model for the video detail page.
  */
 public class VideoDetailActivity extends AppCompatActivity {
+
+    CustomAdapter adapter;
+    List<Exercises> exerciseList;
 
     /**
      Handles the functionality of when the activity is created.
@@ -40,21 +54,26 @@ public class VideoDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_video_detail_activity);
+        setContentView(R.layout.custom_workout_activity);
+
+        RecyclerView recyclerView = findViewById(R.id.exerciseListView);
+        adapter = new CustomAdapter();
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(R.string.add_watch);
+        getSupportActionBar().setTitle("Add a Workout");
 
         Intent intent = getIntent();
         if (intent != null) {
-            String title = intent.getStringExtra(getString(R.string.title));
-            String type = intent.getStringExtra(getString(R.string.type));
-            int imageId = intent.getIntExtra(getString(R.string.image_id), 0);
-            boolean watched = intent.getBooleanExtra(getString(R.string.watched), false);
+            String name = intent.getStringExtra("name");
+            String totalTime = intent.getStringExtra("totalTime");
+            exerciseList = intent.getParcelableExtra("exerciseList");
             int position = intent.getIntExtra(getString(R.string.position), 0);
 
-            EditText titleTextView = findViewById(R.id.titleEditableTextView);
-            titleTextView.setText(title);
+            EditText titleTextView = findViewById(R.id.name);
+            titleTextView.setText(name);
             titleTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
                 /**
@@ -70,25 +89,11 @@ public class VideoDetailActivity extends AppCompatActivity {
                 }
             });
 
-            Spinner spinner = (Spinner) findViewById(R.id.typesSpinner);
-            if (type.equals(getString(R.string.series))) {
-                spinner.setSelection(0);
-            }
-            else if (type.equals(getString(R.string.movie))) {
-                spinner.setSelection(1);
-            }
-            else if (type.equals(getString(R.string.other))) {
-                spinner.setSelection(2);
-            }
+            TextView totalTimeView = findViewById(R.id.totalTime);
+            totalTimeView.setText(totalTime.toString() + " MIN");
 
-            CheckBox checkBox = findViewById(R.id.checkBox);
-            checkBox.setChecked(watched);
-
-            ImageView image = findViewById(R.id.imageView);
-            image.setImageResource(imageId);
-
-            Button saveButton = findViewById(R.id.saveButton);
-            saveButton.setOnClickListener(new View.OnClickListener() {
+            Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
+            saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
                 /**
                  On click the video info will save to be displayed in the recycler view.
                  * @param view the view of the item being clicked.
@@ -100,10 +105,9 @@ public class VideoDetailActivity extends AppCompatActivity {
                     }
                     else {
                         Intent intent = new Intent();
-                        intent.putExtra(getString(R.string.title), titleTextView.getText().toString());
-                        intent.putExtra(getString(R.string.type), spinner.getSelectedItem().toString());
-                        intent.putExtra(getString(R.string.image_id), imageId);
-                        intent.putExtra(getString(R.string.watched), checkBox.isChecked());
+                        intent.putExtra("name", titleTextView.getText().toString());
+                        intent.putExtra("totalTime", totalTimeView.getText().toString());
+                        intent.putExtra("exerciseList", (Parcelable) exerciseList);
                         intent.putExtra(getString(R.string.position), position);
                         VideoDetailActivity.this.setResult(Activity.RESULT_OK, intent);
                         VideoDetailActivity.this.finish();
@@ -112,6 +116,217 @@ public class VideoDetailActivity extends AppCompatActivity {
             });
         }
     }
+
+    class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
+        boolean multiSelect = false;
+        ActionMode actionMode;
+        ActionMode.Callback callbacks;
+        List<Exercises> selectedVideos = new ArrayList<>();
+
+        /**
+         Provides functionality for delete, add, and view recycler item.
+         */
+        class CustomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+            TextView workoutName;
+            TextView workoutTime;
+            CardView myCardView1;
+
+            /**
+             Constructor for Custom View Holder.
+             * @param itemView the view of the recycler.
+             */
+            public CustomViewHolder (@NonNull View itemView) {
+                super(itemView);
+                workoutName = itemView.findViewById(R.id.exercise_name);
+                workoutTime = itemView.findViewById(R.id.exercise_time);
+                myCardView1 = itemView.findViewById(R.id.myCardView1);
+
+                itemView.setOnClickListener(this);
+                itemView.setOnLongClickListener(this);
+            }
+
+            /**
+             Displays the card item.
+             * @param workouts the selected video to show.
+             */
+            public void updateView (WorkoutList workouts) {
+                myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
+                workoutName.setText(workouts.getName());
+                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+            }
+
+            /**
+             Selects a video in the recyclerview.
+             * @param exercises the selected video to show.
+             */
+            public void selectItem (Exercises exercises) {
+                if (multiSelect) {
+                    if (selectedVideos.contains(exercises)) {
+                        selectedVideos.remove(exercises);
+                    }
+                    else {
+                        selectedVideos.add(exercises);
+                        myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
+                    }
+                    if (selectedVideos.size() == 1) {
+                        actionMode.setTitle(selectedVideos.size() +
+                                getString(R.string.item_selected));
+                    }
+                    actionMode.setTitle(selectedVideos.size() +
+                            getString(R.string.items_selected));
+                }
+            }
+
+            /**
+             On long click the user can opt to delete the item or have it remain on the recyclerview.
+             * @param view the view of the item being clicked.
+             * @return true if the handler consumed the event.
+             */
+            @Override
+            public boolean onLongClick (View view) {
+                VideoDetailActivity.this.startActionMode(callbacks);
+                selectItem(exerciseList.get(getAdapterPosition()));
+                return true;
+            }
+
+            /**
+             When the user clicks on the card it will bring them to a new page with the card view.
+             * @param view the view of the item being clicked.
+             */
+            @Override
+            public void onClick (View view) {
+                /*if (multiSelect) {
+                    selectItem(exerciseList.get(getAdapterPosition()));
+                }
+                else {
+                    int position = getAdapterPosition();
+                    Intent intent = new Intent(VideoDetailActivity.this, VideoDetailActivity.class);
+                    intent.putExtra("name", exerciseList.get(position).getName());
+                    intent.putExtra("totalTime", exerciseList.get(position).getTotalTime());
+                    intent.putExtra("exerciseList", (Parcelable) exerciseList.get(position).getExercisesList());
+                    intent.putExtra(getString(R.string.position), position);
+                    launcher.launch(intent);
+                } */
+            }
+        }
+
+        /**
+         Constructor for Adapter that allows a menu bar to be created with menu items that can be clicked on.
+         */
+        public CustomAdapter () {
+            super();
+
+            callbacks = new ActionMode.Callback() {
+
+                /**
+                 Creates the view for the action mode.
+                 * @param menu the top menu view.
+                 * @param mode the action mode view.
+                 * @return true if the action mode is present in the view.
+                 */
+                @Override
+                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                    multiSelect = true;
+                    actionMode = mode;
+
+                    MenuInflater menuInflater = getMenuInflater();
+                    menuInflater.inflate(R.menu.cam_menu, menu);
+
+                    return true;
+                }
+
+                /**
+                 Is false for on create. The method is returned true when the action mode is started.
+                 * @param menu the top menu view.
+                 * @param actionMode the action mode view.
+                 * @return true if the action mode is present in the view.
+                 */
+                @Override
+                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                    return false;
+                }
+
+                /**
+                 Called when a menu item is clicked.
+                 * @param actionMode the action mode view.
+                 * @param menuItem position of each card in recyclerView.
+                 * @return true if a menu item is clicked on.
+                 */
+                @Override
+                public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
+                    if (menuItem.getItemId() == R.id.deleteMenuItem) {
+                        for (int i = 0; i < exerciseList.size(); i++) {
+                            if (selectedVideos.contains(exerciseList.get(i))) {
+                                exerciseList.remove(i);
+                                notifyItemRemoved(i);
+                            }
+                        }
+                        actionMode.finish();
+                        return true;
+                    }
+                    return false;
+                }
+
+                /**
+                 Deletes all of the Videos from the database and recyclerview.
+                 * @param actionMode the action mode view.
+                 */
+                @Override
+                public void onDestroyActionMode (ActionMode actionMode) {
+                    multiSelect = false;
+                    for (Exercises exercises : selectedVideos) {
+                        exerciseList.remove(exercises);
+                    }
+                    selectedVideos.clear();
+
+                    for (int i = 0; i < exerciseList.size(); i++) {
+                        notifyItemChanged(i);
+                    }
+                }
+            };
+        }
+
+        /**
+         Called when RecyclerView needs a new RecyclerView.ViewHolder of the given type to represent an item.
+         * @param parent the parent view.
+         * @param viewType which view to display.
+         * @return the custom view holder to show the recyclerview.
+         */
+        @NonNull
+        @Override
+        public CustomViewHolder onCreateViewHolder (@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(VideoDetailActivity.this)
+                    .inflate(R.layout.exercise_card, parent, false);
+            return new CustomViewHolder(view);
+        }
+
+        /**
+         Called by RecyclerView to display the data at the specified position.
+         * @param holder updates the view of the recyclerview.
+         * @param position position of each card in recyclerView.
+         */
+        @Override
+        public void onBindViewHolder (@NonNull CustomViewHolder holder, int position) {
+            for (int i = 0; i < exerciseList.size(); i++) {
+                if (i == position) {
+                    List<Exercises> exercises = (List<Exercises>) exerciseList.get(i);// check
+                    holder.updateView((WorkoutList) exercises);
+                }
+            }
+        }
+
+        /**
+         Gets the number of items in the recyclerView.
+         * @return the size of the video list in the database.
+         */
+        @Override
+        public int getItemCount () {
+            return exerciseList.size();
+        }
+    }
+
+
+
 
     /**
      Handles events when a menu item is clicked on.
