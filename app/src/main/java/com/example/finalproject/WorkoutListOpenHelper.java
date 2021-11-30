@@ -56,7 +56,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         db.execSQL(CREATE_TABLE_CHILD_LIST);
     }
 
-
     @Override
     public void onUpgrade (SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + WORKOUT_LIST_TABLE);
@@ -64,7 +63,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
 
         onCreate(db);
     }
-
 
     public void addWorkoutListItem (WorkoutList workouts) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -108,8 +106,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-
-
     public List<WorkoutList> getAllWorkoutLists () {
         List<WorkoutList> workouts = new ArrayList<>();
 
@@ -148,18 +144,13 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         db.close();
     }
 
-
-
-
     public int getIntByColumnName (Cursor cursor, String tableColumn) {
         return cursor.getInt(cursor.getColumnIndexOrThrow(tableColumn));
     }
 
-
     public double getDoubleByColumnName (Cursor cursor, String tableColumn) {
         return cursor.getDouble(cursor.getColumnIndexOrThrow(tableColumn));
     }
-
 
     public String getStringByColumnName (Cursor cursor, String tableColumn) {
         return cursor.getString(cursor.getColumnIndexOrThrow(tableColumn));

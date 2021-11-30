@@ -29,14 +29,13 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/exerciseListView"
-        android:layout_width="438dp"
-        android:layout_height="576dp"
+        android:layout_width="351dp"
+        android:layout_height="530dp"
         android:layout_marginStart="5dp"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
-        android:layout_marginBottom="5dp"
-        app:layout_constraintBottom_toTopOf="@+id/saveWorkoutButton"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/name"
         app:layout_constraintTop_toBottomOf="@+id/name">
 
@@ -44,15 +43,23 @@
 
     <Button
         android:id="@+id/saveWorkoutButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="158dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="165dp"
-        android:layout_marginBottom="10dp"
+        android:layout_width="158dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="45dp"
         android:text="Save"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@+id/addExercise"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/addExercise"
+        app:layout_constraintTop_toTopOf="@+id/addExercise" />
+
+    <Button
+        android:id="@+id/addExercise"
+        android:layout_width="163dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="15dp"
+        android:text="Add Exercise"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/exerciseListView" />
 
