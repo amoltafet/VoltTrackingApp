@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
                 WorkoutList workouts = new WorkoutList("", new ArrayList<>());
                 intent.putExtra("name", workouts.getName());
-                intent.putExtra("totalTime", workouts.getTotalTime());
+                intent.putExtra("totalTime", String.valueOf(workouts.getTotalTime()));
                 intent.putExtra("exerciseList", (Serializable) workouts.getExercisesList());
                 intent.putExtra(getString(R.string.position), workoutList.size()+1);
                 launcher.launch(intent);
@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, getString(R.string.on_click_tag) + getAdapterPosition());
                     Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
                     intent.putExtra("name", workoutList.get(position).getName());
-                    intent.putExtra("totalTime", workoutList.get(position).getTotalTime());
+                    intent.putExtra("totalTime", String.valueOf(workoutList.get(position).getTotalTime()));
                     intent.putExtra("exerciseList", (Serializable) workoutList.get(position).getExercisesList());
                     intent.putExtra(getString(R.string.position), position);
                     launcher.launch(intent);

@@ -58,22 +58,23 @@ public class VideoDetailActivity extends AppCompatActivity {
         setContentView(R.layout.custom_workout_activity);
 
         exerciseList = new ArrayList<>();
-        RecyclerView recyclerView = findViewById(R.id.exerciseListView);
         adapter = new CustomAdapter();
+
+        RecyclerView recyclerView = findViewById(R.id.exerciseListView);
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Add a Workout");
+        getSupportActionBar().setTitle("Edit a Workout");
 
         Intent intent = getIntent();
         if (intent != null) {
             String name = intent.getStringExtra("name");
             String totalTime = intent.getStringExtra("totalTime");
             exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
-            int position = intent.getIntExtra(getString(R.string.position), 0);
-
+            int position = intent.getIntExtra("position", 0);
+            exerciseList.add(new Exercises("Dibs", 12));
             EditText titleTextView = findViewById(R.id.name);
             titleTextView.setText(name);
             titleTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -218,7 +219,6 @@ public class VideoDetailActivity extends AppCompatActivity {
             super();
 
             callbacks = new ActionMode.Callback() {
-
                 /**
                  Creates the view for the action mode.
                  * @param menu the top menu view.
@@ -306,12 +306,8 @@ public class VideoDetailActivity extends AppCompatActivity {
          */
         @Override
         public void onBindViewHolder (@NonNull CustomViewHolder holder, int position) {
-            for (int i = 0; i < exerciseList.size(); i++) {
-                if (i == position) {
-                    Exercises exercise = exerciseList.get(i);// check
-                    holder.updateView(exercise); //  check here
-                }
-            }
+            Exercises exercise = exerciseList.get(position);// check
+            holder.updateView(exercise); //  check here
         }
 
         /**
@@ -323,9 +319,6 @@ public class VideoDetailActivity extends AppCompatActivity {
             return exerciseList.size();
         }
     }
-
-
-
 
     /**
      Handles events when a menu item is clicked on.
