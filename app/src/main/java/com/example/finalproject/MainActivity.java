@@ -35,6 +35,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -149,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 WorkoutList workouts = new WorkoutList("", new ArrayList<>());
                 intent.putExtra("name", workouts.getName());
                 intent.putExtra("totalTime", workouts.getTotalTime());
-                intent.putExtra("exerciseList", (ArrayList<Exercises>) workouts.getExercisesList());
+                intent.putExtra("exerciseList", (Serializable) workouts.getExercisesList());
                 intent.putExtra(getString(R.string.position), workoutList.size()+1);
                 launcher.launch(intent);
                 return true;
@@ -265,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
                     intent.putExtra("name", workoutList.get(position).getName());
                     intent.putExtra("totalTime", workoutList.get(position).getTotalTime());
-                    intent.putExtra("exerciseList", (ArrayList<Exercises>) workoutList.get(position).getExercisesList());
+                    intent.putExtra("exerciseList", (Serializable) workoutList.get(position).getExercisesList());
                     intent.putExtra(getString(R.string.position), position);
                     launcher.launch(intent);
                 }

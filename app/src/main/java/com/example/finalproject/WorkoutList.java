@@ -63,6 +63,9 @@ public class WorkoutList {
     }
 
     public int getTotalTime () {
+        if(exercisesList.size() == 0) {
+            return 0;
+        }
         for (Exercises exercise: this.exercisesList) {
             this.totalTime += exercise.getTime();
         }

@@ -36,6 +36,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class VideoDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.custom_workout_activity);
 
+        exerciseList = new ArrayList<>();
         RecyclerView recyclerView = findViewById(R.id.exerciseListView);
         adapter = new CustomAdapter();
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
@@ -69,7 +71,7 @@ public class VideoDetailActivity extends AppCompatActivity {
         if (intent != null) {
             String name = intent.getStringExtra("name");
             String totalTime = intent.getStringExtra("totalTime");
-            exerciseList = intent.getParcelableExtra("exerciseList");
+            exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
             int position = intent.getIntExtra(getString(R.string.position), 0);
 
             EditText titleTextView = findViewById(R.id.name);
@@ -90,7 +92,7 @@ public class VideoDetailActivity extends AppCompatActivity {
             });
 
             TextView totalTimeView = findViewById(R.id.totalTime);
-            totalTimeView.setText(totalTime.toString() + " MIN");
+            totalTimeView.setText(totalTime + " MIN");
 
             Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
             saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -107,7 +109,7 @@ public class VideoDetailActivity extends AppCompatActivity {
                         Intent intent = new Intent();
                         intent.putExtra("name", titleTextView.getText().toString());
                         intent.putExtra("totalTime", totalTimeView.getText().toString());
-                        intent.putExtra("exerciseList", (ArrayList<Exercises>) exerciseList);
+                        intent.putExtra("exerciseList", (Serializable) exerciseList);
                         intent.putExtra(getString(R.string.position), position);
                         VideoDetailActivity.this.setResult(Activity.RESULT_OK, intent);
                         VideoDetailActivity.this.finish();
@@ -137,22 +139,21 @@ public class VideoDetailActivity extends AppCompatActivity {
              */
             public CustomViewHolder (@NonNull View itemView) {
                 super(itemView);
-                workoutName = itemView.findViewById(R.id.exercise_name);
-                workoutTime = itemView.findViewById(R.id.exercise_time);
-                myCardView1 = itemView.findViewById(R.id.myCardView1);
-
+                workoutName = itemView.findViewById(R.id.exercise_name1);
+                workoutTime = itemView.findViewById(R.id.exercise_time1);
+                myCardView1 = itemView.findViewById(R.id.exercise_card);
                 itemView.setOnClickListener(this);
                 itemView.setOnLongClickListener(this);
             }
 
             /**
              Displays the card item.
-             * @param workouts the selected video to show.
+             * @param exercise the selected video to show.
              */
-            public void updateView (WorkoutList workouts) {
+            public void updateView (Exercises exercise) {
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
-                workoutName.setText(workouts.getName());
-                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                workoutName.setText(exercise.getName());
+                workoutTime.setText(String.valueOf(exercise.getTime()));
             }
 
             /**
@@ -184,8 +185,8 @@ public class VideoDetailActivity extends AppCompatActivity {
              */
             @Override
             public boolean onLongClick (View view) {
-                VideoDetailActivity.this.startActionMode(callbacks);
-                selectItem(exerciseList.get(getAdapterPosition()));
+                //VideoDetailActivity.this.startActionMode(callbacks);
+                //selectItem(exerciseList.get(getAdapterPosition()));
                 return true;
             }
 
@@ -228,10 +229,8 @@ public class VideoDetailActivity extends AppCompatActivity {
                 public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                     multiSelect = true;
                     actionMode = mode;
-
                     MenuInflater menuInflater = getMenuInflater();
                     menuInflater.inflate(R.menu.cam_menu, menu);
-
                     return true;
                 }
 
@@ -309,8 +308,8 @@ public class VideoDetailActivity extends AppCompatActivity {
         public void onBindViewHolder (@NonNull CustomViewHolder holder, int position) {
             for (int i = 0; i < exerciseList.size(); i++) {
                 if (i == position) {
-                    List<Exercises> exercises = (List<Exercises>) exerciseList.get(i);// check
-                    holder.updateView((WorkoutList) exercises);
+                    Exercises exercise = exerciseList.get(i);// check
+                    holder.updateView(exercise); //  check here
                 }
             }
         }
