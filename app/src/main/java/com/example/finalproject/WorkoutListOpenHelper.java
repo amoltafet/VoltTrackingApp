@@ -29,6 +29,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
     final String WORKOUT_LIST_TABLE = "tableWorkoutList";
     final String WORKOUT_LIST_ID = "_id";
     final String WORKOUT_LIST_NAME = "name";
+    final String WORKOUT_TOTAL_TIME = "totalTime";
 
     final String EXERCISE_LIST_TABLE = "child_list";
     final String EXERCISE_LIST_ID = "_id";
@@ -44,7 +45,8 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
     public void onCreate (SQLiteDatabase db) {
         String CREATE_MAIN_LIST_TABLE = "CREATE TABLE " + WORKOUT_LIST_TABLE + "("
                 + WORKOUT_LIST_ID + " INTEGER PRIMARY KEY,"
-                + WORKOUT_LIST_NAME + " TEXT)";
+                + WORKOUT_LIST_NAME + " TEXT,"
+                + WORKOUT_TOTAL_TIME + " INTEGER)";
 
         String CREATE_TABLE_CHILD_LIST = "CREATE TABLE " + EXERCISE_LIST_TABLE + "("
                 + EXERCISE_LIST_ID + " INTEGER PRIMARY KEY,"
@@ -68,6 +70,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(WORKOUT_LIST_NAME, workouts.getName());
+        values.put(WORKOUT_TOTAL_TIME, workouts.getTotalTime());
         db.insert(WORKOUT_LIST_TABLE, null, values);
         db.close();
     }
@@ -78,7 +81,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         values.put(EXERCISE_LIST_NAME, exercises.getName());
         values.put(EXERCISE_LIST_TIME, exercises.getTime());
         values.put(EXERCISE_WORKOUT_LIST_ID, exercises.getParentId());
-        db.insert(WORKOUT_LIST_TABLE, null, values);
+        db.insert(EXERCISE_LIST_TABLE, null, values);
         db.close();
     }
 
@@ -114,8 +117,26 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
 
         while (cursor.moveToNext()) {
             WorkoutList workout = new WorkoutList();
-            workout.setId(getIntByColumnName(cursor, EXERCISE_LIST_ID));
+            workout.setId(getIntByColumnName(cursor, WORKOUT_LIST_ID));
             workout.setName(getStringByColumnName(cursor, WORKOUT_LIST_NAME));
+            workout.setTotalTime(getIntByColumnName(cursor, WORKOUT_TOTAL_TIME));
+
+            List<Exercises> exercises = new ArrayList<>();
+
+            SQLiteDatabase exercise_db = this.getReadableDatabase();
+            Cursor exercise_cursor = db.query(EXERCISE_LIST_TABLE, null, null, null, null, null, null);
+
+            while (exercise_cursor.moveToNext()) {
+                Exercises exercise = new Exercises();
+                exercise.setId(getIntByColumnName(exercise_cursor, EXERCISE_LIST_ID));
+                exercise.setParentId(getIntByColumnName(exercise_cursor, EXERCISE_WORKOUT_LIST_ID));
+                exercise.setName(getStringByColumnName(exercise_cursor, EXERCISE_LIST_NAME));
+                exercise.setTime(getIntByColumnName(exercise_cursor, EXERCISE_LIST_TIME));
+                exercises.add(exercise);
+            }
+            exercise_cursor.close();
+            exercise_db.close();
+            workout.setExercisesList(exercises);
             workouts.add(workout);
         }
         cursor.close();
@@ -126,6 +147,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
     public void updateWorkoutById (WorkoutList workout) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(WORKOUT_LIST_NAME, workout.getName());
+        contentValues.put(WORKOUT_TOTAL_TIME, workout.getTotalTime());
 
         SQLiteDatabase db = getWritableDatabase();
         db.update(WORKOUT_LIST_TABLE, contentValues, WORKOUT_LIST_ID + "=?",
@@ -146,10 +168,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
 
     public int getIntByColumnName (Cursor cursor, String tableColumn) {
         return cursor.getInt(cursor.getColumnIndexOrThrow(tableColumn));
-    }
-
-    public double getDoubleByColumnName (Cursor cursor, String tableColumn) {
-        return cursor.getDouble(cursor.getColumnIndexOrThrow(tableColumn));
     }
 
     public String getStringByColumnName (Cursor cursor, String tableColumn) {

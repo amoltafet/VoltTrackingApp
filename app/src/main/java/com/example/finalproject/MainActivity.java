@@ -57,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new CustomAdapter();
 
@@ -66,16 +69,24 @@ public class MainActivity extends AppCompatActivity {
 
         helper = new WorkoutListOpenHelper(this);
         workoutList = new ArrayList<>();
+        List<Exercises> list = new ArrayList<>();
+
         if (helper.getAllWorkoutLists().size() == 0) {
-            List<Exercises> list = new ArrayList<>();
+
             list.add(new Exercises("crunch", 45));
             list.add(new Exercises("rest", 20));
             list.add(new Exercises("plank", 60));
-
             workoutList.add(new WorkoutList("Abs", list));
-            workoutList.get(0).getTotalTime();
+            int time = workoutList.get(0).getTotalTime();
+            workoutList.get(0).setTotalTime(time);
             for (int i = 0; i < workoutList.size(); i++) {
                 helper.addWorkoutListItem(workoutList.get(i));
+                int parentId = helper.getAllWorkoutLists().get(i).getId();
+                for (Exercises exercise: list) {
+                    exercise.setParentId(parentId);
+                    helper.addExerciseListItem(exercise);
+                    adapter.notifyItemChanged(i);
+                }
                 adapter.notifyItemChanged(i);
             }
         }
@@ -146,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.addMenuItem:
-                Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
+                Intent intent = new Intent(MainActivity.this, PlayWorkoutActivity.class);
                 WorkoutList workouts = new WorkoutList("", new ArrayList<>());
                 intent.putExtra("name", workouts.getName());
                 intent.putExtra("totalTime", String.valueOf(workouts.getTotalTime()));
@@ -263,7 +274,7 @@ public class MainActivity extends AppCompatActivity {
                 else {
                     int position = getAdapterPosition();
                     Log.d(TAG, getString(R.string.on_click_tag) + getAdapterPosition());
-                    Intent intent = new Intent(MainActivity.this, VideoDetailActivity.class);
+                    Intent intent = new Intent(MainActivity.this, CustomWorkoutActivity.class);
                     intent.putExtra("name", workoutList.get(position).getName());
                     intent.putExtra("totalTime", String.valueOf(workoutList.get(position).getTotalTime()));
                     intent.putExtra("exerciseList", (Serializable) workoutList.get(position).getExercisesList());
@@ -372,8 +383,8 @@ public class MainActivity extends AppCompatActivity {
         public void onBindViewHolder (@NonNull CustomViewHolder holder, int position) {
             for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
                 if (i == position) {
-                    WorkoutList exercises = helper.getAllWorkoutLists().get(i);// check
-                    holder.updateView(exercises);
+                    WorkoutList workout = helper.getAllWorkoutLists().get(i);
+                    holder.updateView(workout);
                 }
             }
         }

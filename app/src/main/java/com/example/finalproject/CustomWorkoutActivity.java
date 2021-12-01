@@ -13,6 +13,7 @@
 
 package com.example.finalproject;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -23,6 +24,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -43,8 +45,8 @@ import java.util.List;
 /**
  Model for the video detail page.
  */
-public class VideoDetailActivity extends AppCompatActivity {
-
+public class CustomWorkoutActivity extends AppCompatActivity {
+    ActivityResultLauncher<Intent> launcher;
     CustomAdapter adapter;
     List<Exercises> exerciseList;
 
@@ -55,7 +57,7 @@ public class VideoDetailActivity extends AppCompatActivity {
     @Override
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.custom_workout_activity);
+        setContentView(R.layout.activity_custom_workout);
 
         exerciseList = new ArrayList<>();
         adapter = new CustomAdapter();
@@ -75,6 +77,9 @@ public class VideoDetailActivity extends AppCompatActivity {
             exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
             int position = intent.getIntExtra("position", 0);
             exerciseList.add(new Exercises("Dibs", 12));
+
+
+
             EditText titleTextView = findViewById(R.id.name);
             titleTextView.setText(name);
             titleTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -104,7 +109,7 @@ public class VideoDetailActivity extends AppCompatActivity {
                 @Override
                 public void onClick (View view) {
                     if (titleTextView.getText().toString().equals(getString(R.string.empty))) {
-                        Toast.makeText(VideoDetailActivity.this, getString(R.string.save_info), Toast.LENGTH_LONG).show();
+                        Toast.makeText(CustomWorkoutActivity.this, getString(R.string.save_info), Toast.LENGTH_LONG).show();
                     }
                     else {
                         Intent intent = new Intent();
@@ -112,11 +117,23 @@ public class VideoDetailActivity extends AppCompatActivity {
                         intent.putExtra("totalTime", totalTimeView.getText().toString());
                         intent.putExtra("exerciseList", (Serializable) exerciseList);
                         intent.putExtra(getString(R.string.position), position);
-                        VideoDetailActivity.this.setResult(Activity.RESULT_OK, intent);
-                        VideoDetailActivity.this.finish();
+                        CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
+                        CustomWorkoutActivity.this.finish();
                     }
                 }
             });
+
+            Button playWorkoutButton = findViewById(R.id.playButton);
+
+            playWorkoutButton.setOnClickListener(view -> {
+                Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
+                intent1.putExtra("name", titleTextView.getText());
+                intent1.putExtra("totalTime", totalTimeView.getText());
+                intent1.putExtra("exerciseList", (Serializable) exerciseList);
+                intent1.putExtra(getString(R.string.position), position);
+                launcher.launch(intent1);
+            });
+
         }
     }
 
@@ -294,7 +311,7 @@ public class VideoDetailActivity extends AppCompatActivity {
         @NonNull
         @Override
         public CustomViewHolder onCreateViewHolder (@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(VideoDetailActivity.this)
+            View view = LayoutInflater.from(CustomWorkoutActivity.this)
                     .inflate(R.layout.exercise_card, parent, false);
             return new CustomViewHolder(view);
         }

@@ -58,7 +58,7 @@ public class WorkoutList {
         return exercisesList;
     }
 
-    public void setExercisesList(List<Exercises> exercisesList) {
+    public void setExercisesList (List<Exercises> exercisesList) {
         this.exercisesList = exercisesList;
     }
 
@@ -66,6 +66,7 @@ public class WorkoutList {
         if(exercisesList.size() == 0) {
             return 0;
         }
+        this.totalTime = 0;
         for (Exercises exercise: this.exercisesList) {
             this.totalTime += exercise.getTime();
         }
@@ -75,4 +76,6 @@ public class WorkoutList {
     public void setTotalTime (int time) {
         this.totalTime = time;
     }
+
+
 }

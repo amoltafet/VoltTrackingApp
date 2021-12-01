@@ -12,10 +12,12 @@ package com.example.finalproject;
 
 import androidx.annotation.NonNull;
 
+import java.io.Serializable;
+
 /**
  Video class sets the video info, sets the info safely, and gets the indo safely.
  */
-public class Exercises {
+public class Exercises implements Serializable {
     private int id;
     private int parentId;
     private String name;
@@ -29,10 +31,10 @@ public class Exercises {
     }
 
 
-    public Exercises (int id, String name, int time) {
-        this.id = id;
-        this.name = name;
-        this.time = time;
+    public Exercises () {
+        this.id = -1;
+        this.name = "";
+        this.time = 0;
     }
 
     public int getId() {
@@ -47,7 +49,7 @@ public class Exercises {
         return parentId;
     }
 
-    public void setParentId(int parentId) {
+    public void setParentId (int parentId) {
         this.parentId = parentId;
     }
 
