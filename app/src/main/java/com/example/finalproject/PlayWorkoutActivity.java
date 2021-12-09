@@ -30,6 +30,8 @@ public class PlayWorkoutActivity extends AppCompatActivity implements SensorEven
     private float previousTotalSteps = 0f;
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
+    private long steps = 0;
+
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -40,17 +42,18 @@ public class PlayWorkoutActivity extends AppCompatActivity implements SensorEven
         stepsTakenTextView = findViewById(R.id.stepsTakenCount);
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 
-
         Button startRun = findViewById(R.id.startRunButton);
         startRun.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-
             }
         });
+       if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_DENIED){
+            //ask for permission
+            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
+        }
     }
-
 
     @Override
     protected void onResume() {

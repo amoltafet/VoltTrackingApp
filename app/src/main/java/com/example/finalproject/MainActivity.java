@@ -58,8 +58,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new CustomAdapter();
 
@@ -72,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         List<Exercises> list = new ArrayList<>();
 
         if (helper.getAllWorkoutLists().size() == 0) {
-
             list.add(new Exercises("crunch", 45));
             list.add(new Exercises("rest", 20));
             list.add(new Exercises("plank", 60));
