@@ -22,9 +22,10 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
+import android.text.InputType;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -33,11 +34,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  Main Activity screen with a recyclerview shows a card with an image and a textView. Can add and delete Cards.
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     CustomAdapter adapter;
     WorkoutListOpenHelper helper;
     List<WorkoutList> workoutList;
+    private String workoutName = "";
 
     /**
      Handles the functionality of when the activity is created.
@@ -154,17 +159,38 @@ public class MainActivity extends AppCompatActivity {
         int itemId = item.getItemId();
         switch (itemId) {
             case R.id.addMenuItem:
-                Intent intent = new Intent(MainActivity.this, PlayWorkoutActivity.class);
-                WorkoutList workouts = new WorkoutList("", new ArrayList<>());
-                intent.putExtra("name", workouts.getName());
-                intent.putExtra("totalTime", String.valueOf(workouts.getTotalTime()));
-                intent.putExtra("exerciseList", (Serializable) workouts.getExercisesList());
-                intent.putExtra(getString(R.string.position), workoutList.size()+1);
-                launcher.launch(intent);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("Create A New Workout List");
+
+                final EditText input = new EditText(this);
+                input.setInputType(InputType.TYPE_CLASS_TEXT);
+                builder.setView(input);
+                builder.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        workoutName = input.getText().toString();
+                        if (workoutName != null) {
+                            ArrayList exerciseList = new ArrayList();
+                            WorkoutList newWorkoutList = new WorkoutList(workoutName, exerciseList);
+                            workoutList.add(newWorkoutList);
+                            helper.addWorkoutListItem(newWorkoutList);
+                            adapter.notifyItemChanged(workoutList.size());
+                        }
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+
+                builder.show();
                 return true;
-            case R.id.deleteMenuItem:
+
+            case R.id.menuDeleteItem:
                 int initialListSize = workoutList.size();
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(getString(R.string.delete_item))
                         .setMessage(getString(R.string.like_to_delete))
                         .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
@@ -189,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         boolean multiSelect = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
-        List<WorkoutList> selectedVideos = new ArrayList<>();
+        List<WorkoutList> selectedWorkoutList = new ArrayList<>();
 
         /**
          Provides functionality for delete, add, and view recycler item.
@@ -218,9 +244,12 @@ public class MainActivity extends AppCompatActivity {
              * @param workouts the selected video to show.
              */
             public void updateView (WorkoutList workouts) {
+                double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime())* 60);
+                double seconds = ((workouts.getTotalTime()) % (60*minute)) * .01;
+
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(workouts.getName());
-                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                workoutTime.setText(String.valueOf(minute + seconds));
                 Log.d(TAG, "updateView: " + workouts.getTotalTime());
             }
 
@@ -230,18 +259,18 @@ public class MainActivity extends AppCompatActivity {
              */
             public void selectItem (WorkoutList workouts) {
                 if (multiSelect) {
-                    if (selectedVideos.contains(workouts)) {
-                        selectedVideos.remove(workouts);
+                    if (selectedWorkoutList.contains(workouts)) {
+                        selectedWorkoutList.remove(workouts);
                     }
                     else {
-                        selectedVideos.add(workouts);
+                        selectedWorkoutList.add(workouts);
                         myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
                     }
-                    if (selectedVideos.size() == 1) {
-                        actionMode.setTitle(selectedVideos.size() +
+                    if (selectedWorkoutList.size() == 1) {
+                        actionMode.setTitle(selectedWorkoutList.size() +
                                 getString(R.string.item_selected));
                     }
-                    actionMode.setTitle(selectedVideos.size() +
+                    actionMode.setTitle(selectedWorkoutList.size() +
                             getString(R.string.items_selected));
                 }
             }
@@ -325,9 +354,9 @@ public class MainActivity extends AppCompatActivity {
                  */
                 @Override
                 public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
-                    if (menuItem.getItemId() == R.id.deleteMenuItem) {
+                    if (menuItem.getItemId() == R.id.menuOptionExerciseItem) {
                         for (int i = 0; i < workoutList.size(); i++) {
-                            if (selectedVideos.contains(workoutList.get(i))) {
+                            if (selectedWorkoutList.contains(workoutList.get(i))) {
                                 workoutList.remove(i);
                                 notifyItemRemoved(i);
                             }
@@ -345,10 +374,10 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDestroyActionMode (ActionMode actionMode) {
                     multiSelect = false;
-                    for (WorkoutList workouts : selectedVideos) {
+                    for (WorkoutList workouts : selectedWorkoutList) {
                         helper.deleteWorkout(workouts);
                     }
-                    selectedVideos.clear();
+                    selectedWorkoutList.clear();
 
                     for (int i = 0; i < workoutList.size(); i++) {
                         notifyItemChanged(i);

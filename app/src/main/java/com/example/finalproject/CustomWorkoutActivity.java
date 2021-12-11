@@ -23,8 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,6 +39,7 @@ import android.widget.Toast;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  Model for the video detail page.
@@ -98,7 +97,13 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             });
 
             TextView totalTimeView = findViewById(R.id.totalTime);
-            totalTimeView.setText(totalTime + " MIN");
+
+
+
+            double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime))* 60);
+            double seconds = (Integer.parseInt(totalTime)%(60*minute))*.01;
+
+            totalTimeView.setText(String.valueOf(minute + seconds));
 
             Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
             saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -137,11 +142,47 @@ public class CustomWorkoutActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     Creates and displays the options menu.
+     * @param menu the view of the item being clicked.
+     * @return true if the handler consumed the event.
+     */
+    @Override
+    public boolean onCreateOptionsMenu (Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.custom_workout_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     Handles events when a menu item is clicked on.
+     * @param item the view of the item being clicked.
+     * @return true if the handler consumed the event.
+     */
+    @Override
+    public boolean onOptionsItemSelected (@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
+            case R.id.addMenuExerciseItem:
+                Exercises exercise = new Exercises();
+                exerciseList.add(exercise);
+                adapter.notifyItemChanged(exerciseList.size());
+                return true;
+            case R.id.menuOptionExerciseItem:
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
     class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
         boolean multiSelect = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
         List<Exercises> selectedVideos = new ArrayList<>();
+
 
         /**
          Provides functionality for delete, add, and view recycler item.
@@ -150,6 +191,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             TextView workoutName;
             TextView workoutTime;
             CardView myCardView1;
+
 
             /**
              Constructor for Custom View Holder.
@@ -203,8 +245,8 @@ public class CustomWorkoutActivity extends AppCompatActivity {
              */
             @Override
             public boolean onLongClick (View view) {
-                //VideoDetailActivity.this.startActionMode(callbacks);
-                //selectItem(exerciseList.get(getAdapterPosition()));
+                CustomWorkoutActivity.this.startActionMode(callbacks);
+                selectItem(exerciseList.get(getAdapterPosition()));
                 return true;
             }
 
@@ -227,6 +269,10 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     launcher.launch(intent);
                 } */
             }
+            public void startOnContextActionMode () {
+                CustomWorkoutActivity.this.startActionMode(callbacks);
+                selectItem(exerciseList.get(getAdapterPosition()));
+            }
         }
 
         /**
@@ -243,7 +289,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                  * @return true if the action mode is present in the view.
                  */
                 @Override
-                public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                public boolean onCreateActionMode (ActionMode mode, Menu menu) {
                     multiSelect = true;
                     actionMode = mode;
                     MenuInflater menuInflater = getMenuInflater();
@@ -270,7 +316,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                  */
                 @Override
                 public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
-                    if (menuItem.getItemId() == R.id.deleteMenuItem) {
+                    if (menuItem.getItemId() == R.id.menuOptionExerciseItem) {
                         for (int i = 0; i < exerciseList.size(); i++) {
                             if (selectedVideos.contains(exerciseList.get(i))) {
                                 exerciseList.remove(i);
@@ -299,6 +345,10 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         notifyItemChanged(i);
                     }
                 }
+
+
+
+
             };
         }
 
@@ -335,21 +385,6 @@ public class CustomWorkoutActivity extends AppCompatActivity {
         public int getItemCount () {
             return exerciseList.size();
         }
-    }
-
-    /**
-     Handles events when a menu item is clicked on.
-     * @param item the view of the item being clicked.
-     * @return true if the handler consumed the event.
-     */
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                this.finish();
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     /**

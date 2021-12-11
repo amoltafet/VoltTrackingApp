@@ -22,8 +22,7 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlayWorkoutActivity extends AppCompatActivity implements SensorEventListener {
-    List<Exercises> exerciseList;
+public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEventListener*/ {
     private SensorManager sensorManager = null;
     private boolean running = false;
     private float totalSteps = 0f;
@@ -38,63 +37,63 @@ public class PlayWorkoutActivity extends AppCompatActivity implements SensorEven
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_workout);
-        exerciseList = new ArrayList<>();
-        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-
-        Button startRun = findViewById(R.id.startRunButton);
-        startRun.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-            }
-        });
-       if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_DENIED){
-            //ask for permission
-            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
-        }
+//        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
+//        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+//
+//
+//        Button startRun = findViewById(R.id.startRunButton);
+//        startRun.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//            }
+//        });
+//       if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_DENIED){
+//            //ask for permission
+//            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
+//        }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-        if (countSensor != null) {
-            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
-        } else {
-            Toast.makeText(this, "Step counter sensor not available", Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        stepsTakenTextView.setText(String.valueOf(event.values[0]));
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
-
-    private void enableActivityMonitor () {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
-
-        }
-        else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACTIVITY_REQUEST_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == ACTIVITY_REQUEST_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                enableActivityMonitor();
-            }
-        }
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+//        if (countSensor != null) {
+//            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
+//        } else {
+//            Toast.makeText(this, "Step counter sensor not available", Toast.LENGTH_LONG).show();
+//        }
+//    }
+//
+//    @Override
+//    public void onSensorChanged(SensorEvent event) {
+//        stepsTakenTextView.setText(String.valueOf(event.values[0]));
+//    }
+//
+//    @Override
+//    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+//
+//    }
+//
+//    private void enableActivityMonitor () {
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
+//
+//        }
+//        else {
+//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACTIVITY_REQUEST_CODE);
+//        }
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//
+//        if (requestCode == ACTIVITY_REQUEST_CODE) {
+//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                enableActivityMonitor();
+//            }
+//        }
+//    }
 
 
 }
