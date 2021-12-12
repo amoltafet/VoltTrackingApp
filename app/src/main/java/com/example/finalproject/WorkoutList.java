@@ -38,6 +38,13 @@ public class WorkoutList {
         this.totalTime = getTotalTime();
     }
 
+    public WorkoutList (int id, String name, List<Exercises> exercises, int totalTime) {
+        this.id = id;
+        this.name = name;
+        this.exercisesList = exercises;
+        this.totalTime = totalTime;
+    }
+
     public int getId() {
         return id;
     }

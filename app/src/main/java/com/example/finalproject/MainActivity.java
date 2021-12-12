@@ -72,31 +72,13 @@ public class MainActivity extends AppCompatActivity {
 
         helper = new WorkoutListOpenHelper(this);
         workoutList = new ArrayList<>();
-        List<Exercises> list = new ArrayList<>();
 
         if (helper.getAllWorkoutLists().size() == 0) {
-            list.add(new Exercises("crunch", 45));
-            list.add(new Exercises("rest", 20));
-            list.add(new Exercises("plank", 60));
-            workoutList.add(new WorkoutList("Abs", list));
-            int time = workoutList.get(0).getTotalTime();
-            workoutList.get(0).setTotalTime(time);
-            for (int i = 0; i < workoutList.size(); i++) {
-                helper.addWorkoutListItem(workoutList.get(i));
-                int parentId = helper.getAllWorkoutLists().get(i).getId();
-                for (Exercises exercise: list) {
-                    exercise.setParentId(parentId);
-                    helper.addExerciseListItem(exercise);
-                    adapter.notifyItemChanged(i);
-                }
-                adapter.notifyItemChanged(i);
-            }
+            addListsToDb("abs");
+            addListsToDb("legs");
         }
 
-        workoutList = helper.getAllWorkoutLists();
-        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
-            adapter.notifyItemChanged(i);
-        }
+
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     Log.d(TAG, getString(R.string.on_activity_result_tag));
@@ -110,14 +92,13 @@ public class MainActivity extends AppCompatActivity {
 
                         for (int i = 0; i < workoutList.size(); i++) {
                             if (position == i) {
-                                // the same card saved
                                 if (!workoutList.get(i).getName().equals(name)) {
                                     workoutList.get(i).setName(name);
                                     helper.updateWorkoutById(workoutList.get(i));
                                     adapter.notifyItemChanged(i);
                                 }
                                 if (!workoutList.get(i).getExercisesList().equals(exercises)) {
-                                    helper.updateWorkoutById(workoutList.get(i));
+                                    helper.updateExerciseById(workoutList.get(i).getExercisesList().get(i));
                                     workoutList.get(i).setExercisesList(exercises);
                                 }
                                 if (workoutList.get(i).getTotalTime() != totalTime) {
@@ -128,13 +109,40 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         if (position > workoutList.size()) {
-                            WorkoutList workouts = new WorkoutList(name, exercises);
+                            WorkoutList workouts = new WorkoutList(position, name, exercises, totalTime);
                             workoutList.add(workouts);
                             helper.addWorkoutListItem(workouts);
                             adapter.notifyItemChanged(workoutList.size());
                         }
                     }
                 });
+    }
+
+    public void addListsToDb (String name) {
+        List<Exercises> exercises = new ArrayList<>();
+        exercises.add(new Exercises("", 0));
+        WorkoutList newWorkoutList = new WorkoutList(name, exercises);
+        workoutList.add(newWorkoutList);
+        int time = workoutList.get(workoutList.size() - 1).getTotalTime();
+        workoutList.get(workoutList.size() - 1).setTotalTime(time);
+        helper.addWorkoutListItem(workoutList.get(workoutList.size() - 1));
+        adapter.notifyItemChanged(workoutList.size() - 1);
+        workoutList = helper.getAllWorkoutLists();
+
+        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
+            adapter.notifyItemChanged(i);
+        }
+
+        for (int i = 0; i < exercises.size(); i++) {
+            helper.addExerciseListItem(exercises.get(i));
+            adapter.notifyItemChanged(i);
+        }
+        exercises = helper.getAllExercisesLists();
+
+        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
+            adapter.notifyItemChanged(i);
+        }
+
     }
 
     /**
@@ -169,16 +177,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         workoutName = input.getText().toString();
-                        if (workoutName != null) {
-                            ArrayList exerciseList = new ArrayList();
-                            WorkoutList newWorkoutList = new WorkoutList(workoutName, exerciseList);
-                            workoutList.add(newWorkoutList);
-                            helper.addWorkoutListItem(newWorkoutList);
-                            adapter.notifyItemChanged(workoutList.size());
-                        }
+                       addListsToDb(workoutName);
                     }
-                });
-                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
@@ -354,10 +355,12 @@ public class MainActivity extends AppCompatActivity {
                  */
                 @Override
                 public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
-                    if (menuItem.getItemId() == R.id.menuOptionExerciseItem) {
+                    if (menuItem.getItemId() == R.id.camDeleteItem) {
                         for (int i = 0; i < workoutList.size(); i++) {
                             if (selectedWorkoutList.contains(workoutList.get(i))) {
                                 workoutList.remove(i);
+
+                                helper.deleteWorkout(workoutList.get(i));
                                 notifyItemRemoved(i);
                             }
                         }
@@ -374,9 +377,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onDestroyActionMode (ActionMode actionMode) {
                     multiSelect = false;
-                    for (WorkoutList workouts : selectedWorkoutList) {
-                        helper.deleteWorkout(workouts);
-                    }
                     selectedWorkoutList.clear();
 
                     for (int i = 0; i < workoutList.size(); i++) {

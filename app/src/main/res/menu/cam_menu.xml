@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menuOptionExerciseItem"
+        android:id="@+id/camDeleteItem"
         android:title="@string/delete_item"
         android:icon="@android:drawable/ic_menu_delete"
         app:showAsAction="always"/>

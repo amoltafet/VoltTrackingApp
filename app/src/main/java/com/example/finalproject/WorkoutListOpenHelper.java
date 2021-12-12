@@ -62,12 +62,10 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
     public void onUpgrade (SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + WORKOUT_LIST_TABLE);
         db.execSQL("DROP TABLE IF EXISTS " + EXERCISE_LIST_TABLE);
-
         onCreate(db);
     }
 
-    public void addWorkoutListItem (WorkoutList workouts) {
-        SQLiteDatabase db = this.getWritableDatabase();
+    public void addWorkoutListItem (WorkoutList workouts) { SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(WORKOUT_LIST_NAME, workouts.getName());
         values.put(WORKOUT_TOTAL_TIME, workouts.getTotalTime());
@@ -113,35 +111,66 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         List<WorkoutList> workouts = new ArrayList<>();
 
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query(WORKOUT_LIST_TABLE, null, null, null, null, null, null);
+        Cursor cursor = getSelectAllWorkoutsCursor();
 
         while (cursor.moveToNext()) {
-            WorkoutList workout = new WorkoutList();
-            workout.setId(getIntByColumnName(cursor, WORKOUT_LIST_ID));
-            workout.setName(getStringByColumnName(cursor, WORKOUT_LIST_NAME));
-            workout.setTotalTime(getIntByColumnName(cursor, WORKOUT_TOTAL_TIME));
 
-            List<Exercises> exercises = new ArrayList<>();
-
-            SQLiteDatabase exercise_db = this.getReadableDatabase();
-            Cursor exercise_cursor = db.query(EXERCISE_LIST_TABLE, null, null, null, null, null, null);
-
-            while (exercise_cursor.moveToNext()) {
-                Exercises exercise = new Exercises();
-                exercise.setId(getIntByColumnName(exercise_cursor, EXERCISE_LIST_ID));
-                exercise.setParentId(getIntByColumnName(exercise_cursor, EXERCISE_WORKOUT_LIST_ID));
-                exercise.setName(getStringByColumnName(exercise_cursor, EXERCISE_LIST_NAME));
-                exercise.setTime(getIntByColumnName(exercise_cursor, EXERCISE_LIST_TIME));
-                exercises.add(exercise);
-            }
-            exercise_cursor.close();
-            exercise_db.close();
-            workout.setExercisesList(exercises);
+            int id = cursor.getInt(0);
+            String name = cursor.getString(1);
+            int totalTime = cursor.getInt(2);
+            Exercises exercises = new Exercises(" ", 0);
+            List <Exercises> exercisesList = new ArrayList<>();
+            exercisesList.add(exercises);
+            WorkoutList workout = new WorkoutList(id, name, exercisesList, totalTime);
             workouts.add(workout);
         }
         cursor.close();
         db.close();
         return workouts;
+    }
+
+
+    public List<Exercises> getAllExercisesLists () {
+        List<Exercises> exercises = new ArrayList<>();
+
+        SQLiteDatabase exercise_db = this.getReadableDatabase();
+        Cursor exercise_cursor = getSelectAllExercisesCursor();
+
+        while (exercise_cursor.moveToNext()) {
+
+            int exerciseId = exercise_cursor.getInt(0);
+            int parentId = exercise_cursor.getInt(1);
+            String exerciseName = exercise_cursor.getString(2);
+            int time = exercise_cursor.getInt(3);
+            Exercises exercise = new Exercises(exerciseId, parentId, exerciseName, time);
+            exercises.add(exercise);
+        }
+        exercise_cursor.close();
+        exercise_db.close();
+        return exercises;
+    }
+
+    public Cursor getSelectAllWorkoutsCursor () {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(WORKOUT_LIST_TABLE, new String[]{
+                        WORKOUT_LIST_ID,
+                        WORKOUT_LIST_NAME,
+                        WORKOUT_TOTAL_TIME},
+                null, null, null,
+                null, null);
+        return cursor;
+    }
+
+    public Cursor getSelectAllExercisesCursor () {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query(EXERCISE_LIST_TABLE, new String[]{
+                        EXERCISE_LIST_ID,
+                        EXERCISE_WORKOUT_LIST_ID,
+                        EXERCISE_LIST_NAME,
+                        EXERCISE_LIST_TIME},
+                null, null, null,
+                null, null);
+        return cursor;
     }
 
     public void updateWorkoutById (WorkoutList workout) {
@@ -164,14 +193,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         db.update(WORKOUT_LIST_TABLE, contentValues, WORKOUT_LIST_ID + "=?",
                 new String[]{"" + exercises.getId()});
         db.close();
-    }
-
-    public int getIntByColumnName (Cursor cursor, String tableColumn) {
-        return cursor.getInt(cursor.getColumnIndexOrThrow(tableColumn));
-    }
-
-    public String getStringByColumnName (Cursor cursor, String tableColumn) {
-        return cursor.getString(cursor.getColumnIndexOrThrow(tableColumn));
     }
 
 }

@@ -98,8 +98,6 @@ public class CustomWorkoutActivity extends AppCompatActivity {
 
             TextView totalTimeView = findViewById(R.id.totalTime);
 
-
-
             double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime))* 60);
             double seconds = (Integer.parseInt(totalTime)%(60*minute))*.01;
 
@@ -304,7 +302,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                  * @return true if the action mode is present in the view.
                  */
                 @Override
-                public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                public boolean onPrepareActionMode (ActionMode actionMode, Menu menu) {
                     return false;
                 }
 
@@ -345,10 +343,6 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         notifyItemChanged(i);
                     }
                 }
-
-
-
-
             };
         }
 

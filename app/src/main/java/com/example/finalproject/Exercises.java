@@ -30,6 +30,13 @@ public class Exercises implements Serializable {
         this.time = time;
     }
 
+    public Exercises (int id, int parentId, String name, int time) {
+        this.id = id;
+        this.parentId = parentId;
+        this.name = name;
+        this.time = time;
+    }
+
 
     public Exercises () {
         this.id = -1;
@@ -37,15 +44,15 @@ public class Exercises implements Serializable {
         this.time = 0;
     }
 
-    public int getId() {
+    public int getId () {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId (int id) {
         this.id = id;
     }
 
-    public int getParentId() {
+    public int getParentId () {
         return parentId;
     }
 
@@ -53,19 +60,19 @@ public class Exercises implements Serializable {
         this.parentId = parentId;
     }
 
-    public String getName() {
+    public String getName () {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName (String name) {
         this.name = name;
     }
 
-    public int getTime() {
+    public int getTime () {
         return time;
     }
 
-    public void setTime(int time) {
+    public void setTime (int time) {
         this.time = time;
     }
 }
