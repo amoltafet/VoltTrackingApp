@@ -38,10 +38,12 @@ public class Exercises implements Serializable {
     }
 
 
-    public Exercises () {
+    public Exercises (int parentId) {
         this.id = -1;
+        this.parentId = parentId;
         this.name = "";
         this.time = 0;
+
     }
 
     public int getId () {
@@ -75,4 +77,5 @@ public class Exercises implements Serializable {
     public void setTime (int time) {
         this.time = time;
     }
+
 }

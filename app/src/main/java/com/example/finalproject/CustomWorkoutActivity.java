@@ -15,14 +15,19 @@ package com.example.finalproject;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -47,7 +52,13 @@ import java.util.concurrent.TimeUnit;
 public class CustomWorkoutActivity extends AppCompatActivity {
     ActivityResultLauncher<Intent> launcher;
     CustomAdapter adapter;
+    TextView totalTimeView;
     List<Exercises> exerciseList;
+    EditText titleTextView;
+    int position;
+    int parentId;
+    boolean saved;
+
 
     /**
      Handles the functionality of when the activity is created.
@@ -57,7 +68,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     protected void onCreate (Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_workout);
-
+        saved = false;
         exerciseList = new ArrayList<>();
         adapter = new CustomAdapter();
 
@@ -74,34 +85,20 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             String name = intent.getStringExtra("name");
             String totalTime = intent.getStringExtra("totalTime");
             exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
-            int position = intent.getIntExtra("position", 0);
-            exerciseList.add(new Exercises("Dibs", 12));
+            parentId = intent.getIntExtra("parentId", 0);
+            position = intent.getIntExtra("position", 0);
 
-
-
-            EditText titleTextView = findViewById(R.id.name);
+            titleTextView = findViewById(R.id.name);
             titleTextView.setText(name);
-            titleTextView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
 
-                /**
-                 Called when the focus state of a view has changed.
-                 * @param view the keyboard.
-                 * @param b if the focus has been changed.
-                 */
-                @Override
-                public void onFocusChange (View view, boolean b) {
-                    if (!b) {
-                        hideKeyboard(view);
-                    }
-                }
-            });
 
-            TextView totalTimeView = findViewById(R.id.totalTime);
-
-            double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime))* 60);
-            double seconds = (Integer.parseInt(totalTime)%(60*minute))*.01;
-
-            totalTimeView.setText(String.valueOf(minute + seconds));
+            totalTimeView = findViewById(R.id.totalTime);
+            if (Long.parseLong(totalTime) > 60) {
+                double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime)) * 60);
+                double seconds = (Long.parseLong(totalTime) % (60 * minute)) * .01;
+                totalTimeView.setText(String.valueOf(minute + seconds));
+            }
+            totalTimeView.setText(String.valueOf(totalTime));
 
             Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
             saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -112,16 +109,10 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                 @Override
                 public void onClick (View view) {
                     if (titleTextView.getText().toString().equals(getString(R.string.empty))) {
-                        Toast.makeText(CustomWorkoutActivity.this, getString(R.string.save_info), Toast.LENGTH_LONG).show();
+                        Toast.makeText(CustomWorkoutActivity.this, "Enter a workout name", Toast.LENGTH_LONG).show();
                     }
                     else {
-                        Intent intent = new Intent();
-                        intent.putExtra("name", titleTextView.getText().toString());
-                        intent.putExtra("totalTime", totalTimeView.getText().toString());
-                        intent.putExtra("exerciseList", (Serializable) exerciseList);
-                        intent.putExtra(getString(R.string.position), position);
-                        CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
-                        CustomWorkoutActivity.this.finish();
+                      saved = true;
                     }
                 }
             });
@@ -129,15 +120,25 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             Button playWorkoutButton = findViewById(R.id.playButton);
 
             playWorkoutButton.setOnClickListener(view -> {
-                Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
-                intent1.putExtra("name", titleTextView.getText());
-                intent1.putExtra("totalTime", totalTimeView.getText());
-                intent1.putExtra("exerciseList", (Serializable) exerciseList);
-                intent1.putExtra(getString(R.string.position), position);
-                launcher.launch(intent1);
+                if (saved) {
+                    Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
+                    intent1.putExtra("name", titleTextView.getText());
+                    intent1.putExtra("totalTime", getTotalTime());
+                    intent1.putExtra("exerciseList", (Serializable) exerciseList);
+                    intent1.putExtra("parentId", parentId);
+                    intent1.putExtra(getString(R.string.position), position);
+                    launcher.launch(intent1);
+                }
             });
-
         }
+    }
+
+    public int getTotalTime () {
+        int totalTime = 0;
+        for (Exercises exercises: exerciseList) {
+            totalTime += exercises.getTime();
+        }
+        return totalTime;
     }
 
     /**
@@ -161,10 +162,33 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected (@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                this.finish();
+                if (saved) {
+                    Intent intent = new Intent();
+                    intent.putExtra("name", titleTextView.getText().toString());
+                    intent.putExtra("totalTime", getTotalTime());
+                    intent.putExtra("exerciseList", (Serializable) exerciseList);
+                    intent.putExtra("parentId", 0);
+                    intent.putExtra(getString(R.string.position), position);
+                    CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
+                    CustomWorkoutActivity.this.finish();
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Do you want to save before leaving?")
+                    .setPositiveButton("Yes", null)
+                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel(); CustomWorkoutActivity.this.finish();
+                        }
+                    });
+
+                    builder.show();
+                }
+
                 return true;
             case R.id.addMenuExerciseItem:
-                Exercises exercise = new Exercises();
+                Exercises exercise = new Exercises(parentId);
                 exerciseList.add(exercise);
                 adapter.notifyItemChanged(exerciseList.size());
                 return true;
@@ -189,16 +213,14 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             TextView workoutName;
             TextView workoutTime;
             CardView myCardView1;
-
-
             /**
              Constructor for Custom View Holder.
              * @param itemView the view of the recycler.
              */
             public CustomViewHolder (@NonNull View itemView) {
                 super(itemView);
-                workoutName = itemView.findViewById(R.id.exercise_name1);
-                workoutTime = itemView.findViewById(R.id.exercise_time1);
+                workoutName = itemView.findViewById(R.id.exercise_name);
+                workoutTime = itemView.findViewById(R.id.exercise_time);
                 myCardView1 = itemView.findViewById(R.id.exercise_card);
                 itemView.setOnClickListener(this);
                 itemView.setOnLongClickListener(this);
@@ -211,7 +233,85 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             public void updateView (Exercises exercise) {
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(exercise.getName());
+                workoutName.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        exercise.setName(String.valueOf(workoutName.getText()));
+                    }
+                });
+                workoutName.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                    /**
+                     Called when the focus state of a view has changed.
+                     * @param view the keyboard.
+                     * @param b if the focus has been changed.
+                     */
+                    @Override
+                    public void onFocusChange (View view, boolean b) {
+                        if (!b) {
+                            hideKeyboard(view);
+                        }
+                    }
+                });
                 workoutTime.setText(String.valueOf(exercise.getTime()));
+                workoutTime.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+
+                    @Override
+                    public void afterTextChanged (Editable editable) {
+                        String stringTotalTime = "";
+                        if (!String.valueOf(workoutTime.getText()).equals("")) {
+                            stringTotalTime = String.valueOf(workoutTime.getText());
+                            exercise.setTime(Integer.parseInt((stringTotalTime)));
+                        }
+                        int totalTime = 0;
+                        for (Exercises exercises: exerciseList) {
+                             totalTime += exercises.getTime();
+                        }
+                        if (stringTotalTime.contains(".")) {
+                            totalTime = (totalTime * 60) * 100;
+                            totalTimeView.setText(String.valueOf(totalTime));
+                        }
+                        if (totalTime > 60) {
+                            double minute = TimeUnit.SECONDS.toMinutes(totalTime) - (TimeUnit.SECONDS.toHours(totalTime) * 60);
+                            double seconds = (totalTime % (60 * minute)) * .01;
+                            totalTimeView.setText(String.valueOf(minute + seconds));
+                        }
+                        else {
+                            totalTimeView.setText(String.valueOf(totalTime) + "secs");
+                        }
+                    }
+                });
+                workoutTime.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+                 /**
+                     Called when the focus state of a view has changed.
+                     * @param view the keyboard.
+                     * @param b if the focus has been changed.
+                     */
+                    @Override
+                    public void onFocusChange (View view, boolean b) {
+                        if (!b) {
+                            hideKeyboard(view);
+                        }
+                    }
+                });
             }
 
             /**

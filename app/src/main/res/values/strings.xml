@@ -1,38 +1,23 @@
 <resources>
     <string name="app_name">My Workout List</string>
     <string name="main_activity_tag">MainActivity</string>
-    <string name="series">Series</string>
-    <string name="witch_academia">Little Witch Academia</string>
-    <string name="paprika">Paprika</string>
-    <string name="penguin_drum">Mawaru Penguindrum</string>
-    <string name="movie">movie</string>
     <string name="on_activity_result_tag">\"onActivityResult: \"</string>
-    <string name="type">type</string>
-    <string name="title">title</string>
-    <string name="image_id">imageId</string>
-    <string name="watched">watched</string>
     <string name="position">position</string>
     <string name="empty" />
     <string name="other">other</string>
     <string name="on_click_tag">\"onClick: \"</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
-    <string name="like_to_delete">Would you like to delete all Videos in the watchlist?</string>
     <string name="on_long_click">\"onLongClick: \"</string>
     <string name="Watched">Watched</string>
     <string name="save">Save</string>
     <string name="place_holder">PlaceHolder</string>
     <string name="Title">Title</string>
-    <string name="new_video_to">Add New Video to Watch List</string>
-    <string name="save_info">You need to enter a title value before saving.</string>
     <string name="add_item">Add Item</string>
     <string name="delete_item">Delete All Items</string>
-    <string name="add_watch">Add to Watch List</string>
     <string name="item_selected">\" item selected\"</string>
     <string name="items_selected">\" items selected\"</string>
-    <string name="get_video_list">\"setVideoList: \"</string>
     <string name="space">\" \"</string>
-    <string name="database_name">videosDatabase.db</string>
     <string name="equals">=?</string>
     <string name="void_space" />
     <string name="primary_key">\" INTEGER PRIMARY KEY AUTOINCREMENT, \"</string>
@@ -42,11 +27,5 @@
     <string name="text_sql">\" TEXT, \"</string>
     <string name="integer_sql">\" INTEGER, \"</string>
     <string name="text_end_sql">\" TEXT)\"</string>
-    <string name="table_videos">tableVideos</string>
     <string name="id_sql">_id</string>
-    <string-array name="types">
-        <item>Series</item>
-        <item>Movie</item>
-        <item>Other</item>
-    </string-array>
 </resources>

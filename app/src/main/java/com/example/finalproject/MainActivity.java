@@ -36,7 +36,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -87,7 +86,8 @@ public class MainActivity extends AppCompatActivity {
 
                         String name = data.getStringExtra("name");
                         int totalTime = data.getIntExtra("totalTime", 0);
-                        List<Exercises> exercises = data.getParcelableExtra("exerciseList");
+                        List<Exercises> exercises = (List<Exercises>) data.getSerializableExtra(("exerciseList"));
+                        int parentId = data.getIntExtra("parentId", 0);
                         int position = data.getIntExtra(getString(R.string.position), 0);
 
                         for (int i = 0; i < workoutList.size(); i++) {
@@ -98,8 +98,10 @@ public class MainActivity extends AppCompatActivity {
                                     adapter.notifyItemChanged(i);
                                 }
                                 if (!workoutList.get(i).getExercisesList().equals(exercises)) {
-                                    helper.updateExerciseById(workoutList.get(i).getExercisesList().get(i));
-                                    workoutList.get(i).setExercisesList(exercises);
+                                    for (int j = 0; j < exercises.size(); j++) {
+                                        helper.updateExerciseById(exercises.get(i));
+                                        adapter.notifyItemChanged(i);
+                                    }
                                 }
                                 if (workoutList.get(i).getTotalTime() != totalTime) {
                                     workoutList.get(i).setTotalTime(totalTime);
@@ -131,6 +133,10 @@ public class MainActivity extends AppCompatActivity {
 
         for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
             adapter.notifyItemChanged(i);
+        }
+        for (int i = 0; i < exercises.size(); i++) {
+            exercises.get(i).setParentId(workoutList.get(i).getId());
+
         }
 
         for (int i = 0; i < exercises.size(); i++) {
@@ -193,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                 int initialListSize = workoutList.size();
                 builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setTitle(getString(R.string.delete_item))
-                        .setMessage(getString(R.string.like_to_delete))
+                        .setMessage("Do you want to delete the workout?")
                         .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
                             helper.deleteAllWorkouts();
                             helper.deleteAllExercises();
@@ -232,8 +238,8 @@ public class MainActivity extends AppCompatActivity {
              */
             public CustomViewHolder (@NonNull View itemView) {
                 super(itemView);
-                workoutName = itemView.findViewById(R.id.exercise_name);
-                workoutTime = itemView.findViewById(R.id.exercise_time);
+                workoutName = itemView.findViewById(R.id.workout_name);
+                workoutTime = itemView.findViewById(R.id.workout_time);
                 myCardView1 = itemView.findViewById(R.id.myCardView1);
 
                 itemView.setOnClickListener(this);
@@ -245,12 +251,15 @@ public class MainActivity extends AppCompatActivity {
              * @param workouts the selected video to show.
              */
             public void updateView (WorkoutList workouts) {
-                double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime())* 60);
-                double seconds = ((workouts.getTotalTime()) % (60*minute)) * .01;
-
+                if (workouts.getTotalTime() != 0) {
+                    double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
+                    double seconds = ((workouts.getTotalTime()) % (60 * minute)) * .01;
+                    workoutTime.setText(String.valueOf(minute + seconds));
+                }
+                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(workouts.getName());
-                workoutTime.setText(String.valueOf(minute + seconds));
+
                 Log.d(TAG, "updateView: " + workouts.getTotalTime());
             }
 
@@ -305,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("name", workoutList.get(position).getName());
                     intent.putExtra("totalTime", String.valueOf(workoutList.get(position).getTotalTime()));
                     intent.putExtra("exerciseList", (Serializable) workoutList.get(position).getExercisesList());
+                    intent.putExtra("parentId", workoutList.get(position).getId());
                     intent.putExtra(getString(R.string.position), position);
                     launcher.launch(intent);
                 }
