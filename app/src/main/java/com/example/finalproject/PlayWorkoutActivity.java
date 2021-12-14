@@ -37,6 +37,26 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_workout);
+        
+        Intent intent = getIntent();
+        if (intent != null) {
+            name = intent.getStringExtra("name");
+            time = intent.getStringExtra("totalTime");
+            exercises = (List<Exercises>) intent.getSerializableExtra("exerciseList");
+            parentId = intent.getIntExtra("parentId", 0);
+            position = intent.getIntExtra("position", 0);
+
+            TextView timeView = findViewById(R.id.timeLeft);
+            if (Long.parseLong(time) > 60) {
+                double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(time)) - (TimeUnit.SECONDS.toHours(Long.parseLong(time)) * 60);
+                double seconds = (Long.parseLong(time) % (60 * minute)) * .01;
+                timeView.setText(String.valueOf(minute + seconds));
+            } else {
+                timeView.setText(String.valueOf(time));
+            }
+            
+            TextView nameView = findViewById(R.id.name);
+            nameView.setText(name);
 //        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
 //        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 //
