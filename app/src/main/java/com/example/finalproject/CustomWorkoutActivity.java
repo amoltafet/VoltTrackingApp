@@ -124,7 +124,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         Toast.makeText(CustomWorkoutActivity.this, "Enter a workout name", Toast.LENGTH_LONG).show();
                     }
                     else {
-                      saved = true;
+                        saved = true;
                     }
                 }
             });
@@ -134,13 +134,26 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             playWorkoutButton.setOnClickListener(view -> {
                 if (saved) {
                     Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
-                    intent1.putExtra("name", titleTextView.getText());
+                    intent1.putExtra("name", titleTextView.getText().toString());
                     intent1.putExtra("totalTime", getTotalTime());
                     intent1.putExtra("exerciseList", (Serializable) exerciseList);
-                    intent1.putExtra("parentId", parentId);
-                    intent1.putExtra("run", run);
+                    intent1.putExtra("parentId", 0);
+                    intent1.putExtra("run", false);
                     intent1.putExtra(getString(R.string.position), position);
-                    launcher.launch(intent1);
+                    startActivity(intent1);
+                }
+                else {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                    builder.setTitle("Do you want to save before leaving?")
+                            .setPositiveButton("Yes", null)
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel(); CustomWorkoutActivity.this.finish();
+                                }
+                            });
+
+                    builder.show();
                 }
             });
         }
@@ -189,13 +202,13 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                 else {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     builder.setTitle("Do you want to save before leaving?")
-                    .setPositiveButton("Yes", null)
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.cancel(); CustomWorkoutActivity.this.finish();
-                        }
-                    });
+                            .setPositiveButton("Yes", null)
+                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.cancel(); CustomWorkoutActivity.this.finish();
+                                }
+                            });
 
                     builder.show();
                 }
@@ -297,7 +310,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         }
                         int totalTime = 0;
                         for (Exercises exercises: exerciseList) {
-                             totalTime += exercises.getTime();
+                            totalTime += exercises.getTime();
                         }
                         if (stringTotalTime.contains(".")) {
                             totalTime = (totalTime * 60) * 100;
@@ -314,7 +327,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     }
                 });
                 workoutTime.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                 /**
+                    /**
                      Called when the focus state of a view has changed.
                      * @param view the keyboard.
                      * @param b if the focus has been changed.

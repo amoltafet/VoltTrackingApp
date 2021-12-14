@@ -14,6 +14,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.List;
  Handles all of the necessary functions for CRUD to the database.
  */
 public class WorkoutListOpenHelper extends SQLiteOpenHelper {
-
+    static final String TAG = "WorkoutListOpenHelper";
     static final int DATABASE_VERSION = 1;
     static final String DATABASE_NAME = "finalProject.db";
 
@@ -88,13 +89,13 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
 
     public void deleteWorkout (WorkoutList workouts) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(WORKOUT_LIST_TABLE, WORKOUT_LIST_ID + " = ?", new String[] { String.valueOf(workouts.getId()) });
+        db.delete(WORKOUT_LIST_TABLE, WORKOUT_LIST_ID + "=?", new String[] { String.valueOf(workouts.getId()) });
         db.close();
     }
 
-    public void deleteExercise (Exercises exercises) {
+    public void deleteExerciseList (int position) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(EXERCISE_LIST_TABLE, EXERCISE_LIST_ID + " = ?", new String[] { String.valueOf(exercises.getId()) });
+        db.delete(EXERCISE_LIST_TABLE, EXERCISE_WORKOUT_LIST_ID + "=?", new String[] { String.valueOf(position) });
         db.close();
     }
 

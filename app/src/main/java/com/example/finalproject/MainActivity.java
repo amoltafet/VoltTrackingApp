@@ -99,10 +99,20 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 if (!workoutList.get(i).getExercisesList().equals(exercises)) {
                                     workoutList.get(i).setExercisesList(exercises);
-                                    helper.deleteAllExercises();
+                                    helper.deleteExerciseList(workoutList.get(i).getId());
                                     for (int j = 0; j < exercises.size(); j++) {
-                                        helper.addExerciseListItem(exercises.get(i));
-                                        adapter.notifyItemChanged(i);
+                                        helper.addExerciseListItem(exercises.get(j));
+                                        adapter.notifyItemChanged(j);
+                                    }
+                                    exercises = helper.getAllExercisesLists();
+                                    workoutList.get(i).getExercisesList().clear();
+
+
+                                    for (int j = 0; j < exercises.size(); j++) {
+                                        if (exercises.get(j).getParentId() == helper.getAllWorkoutLists().get(i).getId()) {
+                                            workoutList.get(i).getExercisesList().add(exercises.get(j));
+                                            adapter.notifyItemChanged(j);
+                                        }
                                     }
                                 }
                                 if (workoutList.get(i).getTotalTime() != totalTime) {
@@ -195,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         workoutName = input.getText().toString();
-                       addListsToDb(workoutName, workoutList.size() + 1);
+                        addListsToDb(workoutName, workoutList.size() + 1);
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -263,12 +273,19 @@ public class MainActivity extends AppCompatActivity {
              * @param workouts the selected video to show.
              */
             public void updateView (WorkoutList workouts) {
-                if (workouts.getTotalTime() != 0) {
+                for (int i = 0; i < workouts.getExercisesList().size(); i++) {
+                    if (workouts.getExercisesList().get(i).getParentId() != workouts.getId()) {
+                        workouts.getExercisesList().remove(i);
+                    }
+                }
+                if (workouts.getTotalTime() > 60) {
                     double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
                     double seconds = ((workouts.getTotalTime()) % (60 * minute)) * .01;
                     workoutTime.setText(String.valueOf(minute + seconds));
                 }
-                workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                else {
+                    workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                }
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(workouts.getName());
 

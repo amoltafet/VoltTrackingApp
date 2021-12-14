@@ -1,12 +1,16 @@
 package com.example.finalproject;
 
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -15,14 +19,20 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEventListener*/ {
+    ActivityResultLauncher<Intent> launcher;
+    List<Exercises> exerciseList;
+    PlayWorkoutActivity.CustomAdapter adapter;
     private SensorManager sensorManager = null;
     private boolean running = false;
     private float totalSteps = 0f;
@@ -37,24 +47,36 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_workout);
-        
+
+        exerciseList = new ArrayList<>();
+        adapter = new CustomAdapter();
+
+        RecyclerView recyclerView = findViewById(R.id.exerciseListView);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Edit a Workout");
+
         Intent intent = getIntent();
         if (intent != null) {
-            name = intent.getStringExtra("name");
-            time = intent.getStringExtra("totalTime");
-            exercises = (List<Exercises>) intent.getSerializableExtra("exerciseList");
-            parentId = intent.getIntExtra("parentId", 0);
-            position = intent.getIntExtra("position", 0);
+            String name = intent.getStringExtra("name");
+            String time = intent.getStringExtra("totalTime");
+            List<Exercises> exercises = (List<Exercises>) intent.getSerializableExtra("exerciseList");
+            int parentId = intent.getIntExtra("parentId", 0);
+            int position = intent.getIntExtra("position", 0);
 
             TextView timeView = findViewById(R.id.timeLeft);
             if (Long.parseLong(time) > 60) {
                 double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(time)) - (TimeUnit.SECONDS.toHours(Long.parseLong(time)) * 60);
+
                 double seconds = (Long.parseLong(time) % (60 * minute)) * .01;
                 timeView.setText(String.valueOf(minute + seconds));
             } else {
                 timeView.setText(String.valueOf(time));
             }
-            
+
             TextView nameView = findViewById(R.id.name);
             nameView.setText(name);
 //        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
@@ -72,7 +94,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 //            //ask for permission
 //            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
 //        }
-    }
+        }
 
 //    @Override
 //    protected void onResume() {
@@ -115,5 +137,30 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 //        }
 //    }
 
+    }
 
+    class CustomAdapter extends RecyclerView.Adapter<PlayWorkoutActivity.CustomAdapter.CustomViewHolder> {
+
+        @NonNull
+        @Override
+        public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            return null;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return 0;
+        }
+
+        public class CustomViewHolder extends RecyclerView.ViewHolder {
+            public CustomViewHolder(@NonNull View itemView) {
+                super(itemView);
+            }
+        }
+    }
 }
