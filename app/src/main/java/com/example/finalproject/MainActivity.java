@@ -73,8 +73,8 @@ public class MainActivity extends AppCompatActivity {
         workoutList = new ArrayList<>();
 
         if (helper.getAllWorkoutLists().size() == 0) {
-            addListsToDb("abs");
-            addListsToDb("legs");
+            addListsToDb("abs", 0);
+            addListsToDb("legs", 1);
         }
 
 
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                         String name = data.getStringExtra("name");
                         int totalTime = data.getIntExtra("totalTime", 0);
                         List<Exercises> exercises = (List<Exercises>) data.getSerializableExtra(("exerciseList"));
-                        int parentId = data.getIntExtra("parentId", 0);
+                        boolean run = data.getBooleanExtra("run", false);
                         int position = data.getIntExtra(getString(R.string.position), 0);
 
                         for (int i = 0; i < workoutList.size(); i++) {
@@ -98,8 +98,10 @@ public class MainActivity extends AppCompatActivity {
                                     adapter.notifyItemChanged(i);
                                 }
                                 if (!workoutList.get(i).getExercisesList().equals(exercises)) {
+                                    workoutList.get(i).setExercisesList(exercises);
+                                    helper.deleteAllExercises();
                                     for (int j = 0; j < exercises.size(); j++) {
-                                        helper.updateExerciseById(exercises.get(i));
+                                        helper.addExerciseListItem(exercises.get(i));
                                         adapter.notifyItemChanged(i);
                                     }
                                 }
@@ -108,10 +110,15 @@ public class MainActivity extends AppCompatActivity {
                                     helper.updateWorkoutById(workoutList.get(i));
                                     adapter.notifyItemChanged(i);
                                 }
+                                if (workoutList.get(i).getRun() != run) {
+                                    workoutList.get(i).setRun(run);
+                                    helper.updateWorkoutById(workoutList.get(i));
+                                    adapter.notifyItemChanged(i);
+                                }
                             }
                         }
                         if (position > workoutList.size()) {
-                            WorkoutList workouts = new WorkoutList(position, name, exercises, totalTime);
+                            WorkoutList workouts = new WorkoutList(position, name, exercises, totalTime, run);
                             workoutList.add(workouts);
                             helper.addWorkoutListItem(workouts);
                             adapter.notifyItemChanged(workoutList.size());
@@ -120,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    public void addListsToDb (String name) {
+    public void addListsToDb (String name, int position) {
         List<Exercises> exercises = new ArrayList<>();
         exercises.add(new Exercises("", 0));
         WorkoutList newWorkoutList = new WorkoutList(name, exercises);
@@ -134,21 +141,26 @@ public class MainActivity extends AppCompatActivity {
         for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
             adapter.notifyItemChanged(i);
         }
-        for (int i = 0; i < exercises.size(); i++) {
-            exercises.get(i).setParentId(workoutList.get(i).getId());
 
+        for (int i = 0; i < exercises.size(); i++) {
+            exercises.get(i).setParentId(workoutList.get(position).getId());
         }
 
         for (int i = 0; i < exercises.size(); i++) {
             helper.addExerciseListItem(exercises.get(i));
             adapter.notifyItemChanged(i);
         }
+
         exercises = helper.getAllExercisesLists();
+        workoutList.get(position).getExercisesList().clear();
 
-        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
-            adapter.notifyItemChanged(i);
+
+        for (int i = 0; i < exercises.size(); i++) {
+            if (exercises.get(i).getParentId() == helper.getAllWorkoutLists().get(position).getId()) {
+                workoutList.get(position).getExercisesList().add(exercises.get(i));
+                adapter.notifyItemChanged(i);
+            }
         }
-
     }
 
     /**
@@ -183,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         workoutName = input.getText().toString();
-                       addListsToDb(workoutName);
+                       addListsToDb(workoutName, workoutList.size() + 1);
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -315,6 +327,7 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra("totalTime", String.valueOf(workoutList.get(position).getTotalTime()));
                     intent.putExtra("exerciseList", (Serializable) workoutList.get(position).getExercisesList());
                     intent.putExtra("parentId", workoutList.get(position).getId());
+                    intent.putExtra("run", workoutList.get(position).getRun());
                     intent.putExtra(getString(R.string.position), position);
                     launcher.launch(intent);
                 }

@@ -37,7 +37,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -58,6 +60,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     int position;
     int parentId;
     boolean saved;
+    boolean run;
 
 
     /**
@@ -86,11 +89,20 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             String totalTime = intent.getStringExtra("totalTime");
             exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
             parentId = intent.getIntExtra("parentId", 0);
+            run = intent.getBooleanExtra("run", false);
             position = intent.getIntExtra("position", 0);
-
             titleTextView = findViewById(R.id.name);
             titleTextView.setText(name);
 
+            Switch switch1 = (Switch) findViewById(R.id.switch1);
+            switch1.setChecked(run);
+
+            switch1.setOnCheckedChangeListener (new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged (CompoundButton compoundButton, boolean b) {
+                    run = b;
+                }
+            });
 
             totalTimeView = findViewById(R.id.totalTime);
             if (Long.parseLong(totalTime) > 60) {
@@ -126,6 +138,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     intent1.putExtra("totalTime", getTotalTime());
                     intent1.putExtra("exerciseList", (Serializable) exerciseList);
                     intent1.putExtra("parentId", parentId);
+                    intent1.putExtra("run", run);
                     intent1.putExtra(getString(R.string.position), position);
                     launcher.launch(intent1);
                 }
@@ -168,6 +181,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     intent.putExtra("totalTime", getTotalTime());
                     intent.putExtra("exerciseList", (Serializable) exerciseList);
                     intent.putExtra("parentId", 0);
+                    intent.putExtra("run", false);
                     intent.putExtra(getString(R.string.position), position);
                     CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
                     CustomWorkoutActivity.this.finish();

@@ -20,53 +20,41 @@ public class WorkoutList {
     private String name;
     private int totalTime;
     private List<Exercises> exercisesList;
+    private boolean run;
 
     /**
      Creates an arrayList of Videos.
      */
-    public WorkoutList () {
-        this.id = -1;
-        this.name = "";
-        this.totalTime = 0;
-        this.exercisesList = new ArrayList<>();
-    }
-
     public WorkoutList (String name, List<Exercises> exercises) {
         this.id = -1;
         this.name = name;
         this.exercisesList = exercises;
         this.totalTime = getTotalTime();
+        this.run = false;
     }
 
-    public WorkoutList (int id, String name, List<Exercises> exercises, int totalTime) {
+    public WorkoutList (int id, String name, List<Exercises> exercises, int totalTime, boolean run) {
         this.id = id;
         this.name = name;
         this.exercisesList = exercises;
         this.totalTime = totalTime;
+        this.run = run;
     }
 
-    public int getId() {
+    public int getId () {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId (int id) {
         this.id = id;
     }
 
-    public String getName() {
+    public String getName () {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName (String name) {
         this.name = name;
-    }
-
-    public List<Exercises> getExercisesList() {
-        return exercisesList;
-    }
-
-    public void setExercisesList (List<Exercises> exercisesList) {
-        this.exercisesList = exercisesList;
     }
 
     public int getTotalTime () {
@@ -84,5 +72,19 @@ public class WorkoutList {
         this.totalTime = time;
     }
 
+    public List<Exercises> getExercisesList () {
+        return exercisesList;
+    }
 
+    public void setExercisesList(List<Exercises> exercisesList) {
+        this.exercisesList = exercisesList;
+    }
+
+    public boolean getRun () {
+        return run;
+    }
+
+    public void setRun (boolean run) {
+        this.run = run;
+    }
 }
