@@ -135,6 +135,34 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+        workoutList = helper.getAllWorkoutLists();
+
+        for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
+            adapter.notifyItemChanged(i);
+        }
+
+        List<Exercises> allExercises = new ArrayList<>();
+        for (Exercises exercise: workoutList.get(0).getExercisesList()) {
+                allExercises.add(exercise);
+
+        }
+        for (WorkoutList workout: workoutList) {
+            workout.getExercisesList().clear();
+        }
+
+
+        for (int i = 0; i < workoutList.size(); i++) {
+            for (int j = 0; j < allExercises.size(); j++) {
+                if (allExercises.get(j).getParentId() == workoutList.get(i).getId()) {
+                    workoutList.get(i).getExercisesList().add(allExercises.get(j));
+                }
+            }
+        }
+
+        for (int i = 0; i < workoutList.size(); i++) {
+            adapter.notifyItemChanged(i);
+        }
+
     }
 
     public void addListsToDb (String name, int position) {
@@ -205,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         workoutName = input.getText().toString();
-                        addListsToDb(workoutName, workoutList.size() + 1);
+                        addListsToDb(workoutName, workoutList.size());
                     }
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
@@ -273,11 +301,15 @@ public class MainActivity extends AppCompatActivity {
              * @param workouts the selected video to show.
              */
             public void updateView (WorkoutList workouts) {
+                List<Exercises> newExerciseList = new ArrayList<>();
                 for (int i = 0; i < workouts.getExercisesList().size(); i++) {
-                    if (workouts.getExercisesList().get(i).getParentId() != workouts.getId()) {
-                        workouts.getExercisesList().remove(i);
+
+                    if (workouts.getExercisesList().get(i).getParentId() == workouts.getId()) {
+                        newExerciseList.add(workouts.getExercisesList().get(i));
                     }
                 }
+                workouts.setExercisesList(newExerciseList);
+
                 if (workouts.getTotalTime() > 60) {
                     double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
                     double seconds = ((workouts.getTotalTime()) % (60 * minute)) * .01;
