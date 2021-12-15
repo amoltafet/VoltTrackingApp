@@ -105,12 +105,14 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             });
 
             totalTimeView = findViewById(R.id.totalTime);
-            if (Long.parseLong(totalTime) > 60) {
+            if (Long.parseLong(totalTime) >= 60) {
                 double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime)) * 60);
                 double seconds = (Long.parseLong(totalTime) % (60 * minute)) * .01;
                 totalTimeView.setText(String.valueOf(minute + seconds));
             }
-            totalTimeView.setText(String.valueOf(totalTime));
+            else {
+                totalTimeView.setText(String.valueOf(totalTime + " seconds"));
+            }
 
             Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
             saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -316,13 +318,13 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                             totalTime = (totalTime * 60) * 100;
                             totalTimeView.setText(String.valueOf(totalTime));
                         }
-                        if (totalTime > 60) {
+                        if (totalTime >= 60) {
                             double minute = TimeUnit.SECONDS.toMinutes(totalTime) - (TimeUnit.SECONDS.toHours(totalTime) * 60);
                             double seconds = (totalTime % (60 * minute)) * .01;
-                            totalTimeView.setText(String.valueOf(minute + seconds));
+                            totalTimeView.setText(String.valueOf(minute  + seconds));
                         }
                         else {
-                            totalTimeView.setText(String.valueOf(totalTime) + "secs");
+                            totalTimeView.setText(totalTime + " seconds");
                         }
                     }
                 });

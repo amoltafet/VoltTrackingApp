@@ -248,8 +248,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menuDeleteItem:
                 int initialListSize = workoutList.size();
                 builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(getString(R.string.delete_item))
-                        .setMessage("Do you want to delete the workout?")
+                builder.setTitle("Delete All Workouts")
+                        .setMessage("Are you sure you want to delete all of the workouts?")
                         .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
                             helper.deleteAllWorkouts();
                             helper.deleteAllExercises();
@@ -310,13 +310,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 workouts.setExercisesList(newExerciseList);
 
-                if (workouts.getTotalTime() > 60) {
-                    double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
-                    double seconds = ((workouts.getTotalTime()) % (60 * minute)) * .01;
+
+
+                if (workouts.getTotalTime() >= 60) {
+                    double minute = TimeUnit.SECONDS.toMinutes(workouts.getTotalTime()) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
+                    double seconds = (workouts.getTotalTime() % (60 * minute)) * .01;
                     workoutTime.setText(String.valueOf(minute + seconds));
                 }
                 else {
-                    workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                    workoutTime.setText(String.valueOf(workouts.getTotalTime() + " seconds"));
                 }
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(workouts.getName());
@@ -332,6 +334,7 @@ public class MainActivity extends AppCompatActivity {
                 if (multiSelect) {
                     if (selectedWorkoutList.contains(workouts)) {
                         selectedWorkoutList.remove(workouts);
+                        myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                     }
                     else {
                         selectedWorkoutList.add(workouts);
@@ -430,9 +433,10 @@ public class MainActivity extends AppCompatActivity {
                     if (menuItem.getItemId() == R.id.camDeleteItem) {
                         for (int i = 0; i < workoutList.size(); i++) {
                             if (selectedWorkoutList.contains(workoutList.get(i))) {
-                                workoutList.remove(i);
-
                                 helper.deleteWorkout(workoutList.get(i));
+                                helper.deleteExerciseList(workoutList.get(i).getId());
+                                workoutList.get(i).getExercisesList().clear();
+                                workoutList.remove(i);
                                 notifyItemRemoved(i);
                             }
                         }
