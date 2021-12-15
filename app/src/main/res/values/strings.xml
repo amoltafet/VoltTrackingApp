@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Workout Tracker</string>
+    <string name="app_name">Volt</string>
     <string name="main_activity_tag">MainActivity</string>
     <string name="on_activity_result_tag">\"onActivityResult: \"</string>
     <string name="position">position</string>

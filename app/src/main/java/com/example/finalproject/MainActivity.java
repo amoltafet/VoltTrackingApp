@@ -3,10 +3,7 @@
  * CPSC 312-02, Fall 2021
  * Programming Assignment #7
  * Sources:
- *  <div>Icons made by <a href="https://www.flaticon.com/authors/feen" title="feen">feen</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
- *  https://www.zerochan.net/695419
- *  https://www.imdb.com/title/tt0851578/mediaviewer/rm1498027776/
- *  https://miro.medium.com/max/1400/1*QXEgzNLX-6pTbLZu4VpIVg.jpeg
+ *  <div>Icons made by <a href="" title="wanicon">wanicon</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
  *
  * @author Rebekah Hale
  * @version v2.0 11/23/21

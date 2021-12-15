@@ -59,7 +59,6 @@ import java.util.concurrent.TimeUnit;
  Model for the video detail page.
  */
 public class CustomWorkoutActivity extends AppCompatActivity {
-    ActivityResultLauncher<Intent> launcher;
     CustomAdapter adapter;
     TextView totalTimeView;
     List<Exercises> exerciseList;
@@ -139,7 +138,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         intent.putExtra("totalTime", getTotalTime());
                         intent.putExtra("exerciseList", (Serializable) exerciseList);
                         intent.putExtra("parentId", 0);
-                        intent.putExtra("run", false);
+                        intent.putExtra("run", run);
                         intent.putExtra(getString(R.string.position), position);
                         CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
                         CustomWorkoutActivity.this.finish();
@@ -155,7 +154,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     intent1.putExtra("totalTime", String.valueOf(getTotalTime()));
                     intent1.putExtra("exerciseList", (Serializable) exerciseList);
                     intent1.putExtra("parentId", 0);
-                    intent1.putExtra("run", false);
+                    intent1.putExtra("run", run);
                     intent1.putExtra(getString(R.string.position), position);
                     startActivity(intent1);
             });
