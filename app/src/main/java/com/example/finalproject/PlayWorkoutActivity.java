@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -106,8 +107,11 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
                     }
                 });
             }
+            CountDownTimer mCountDownTimer;
+            run = false;
             if(run) {
-                /*i = 1;
+                nameView.setText("Cardio");
+                i = 1;
                 mProgressBar.setProgress(i);
                 mCountDownTimer=new CountDownTimer(100*1000,1000) {
                     @Override
@@ -115,6 +119,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
                         i++;
                         mProgressBar.setProgress((int)i);
                         timeLeft.setText(String.valueOf((int)i));
+
 
                     }
                     @Override
@@ -124,12 +129,12 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
                     }
                 };
-                mCountDownTimer.start(); */
-            } else {
+                mCountDownTimer.start();
+            }
+            else {
                 for(int i = 0; i < exerciseList.size(); i++) {
                     nameView.setText(exerciseList.get(i).getName());
                     timers.get(i).start();
-
                     //timers.get(i).notifyAll();
                 }
             }
