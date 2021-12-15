@@ -22,8 +22,15 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -248,8 +255,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.menuDeleteItem:
                 int initialListSize = workoutList.size();
                 builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle(getString(R.string.delete_item))
-                        .setMessage("Do you want to delete the workout?")
+                builder.setTitle("Delete All Workouts")
+                        .setMessage("Are you sure you want to delete all of the workouts?")
                         .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
                             helper.deleteAllWorkouts();
                             helper.deleteAllExercises();
@@ -263,6 +270,31 @@ public class MainActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private static class MyDragShadowBuilder extends View.DragShadowBuilder {
+        private static Drawable shadow;
+
+        public MyDragShadowBuilder (View v) {
+            super(v);
+            shadow = new ColorDrawable(Color.LTGRAY);
+        }
+
+        @Override
+        public void onProvideShadowMetrics (Point outShadowSize, Point outShadowTouchPoint) {
+            super.onProvideShadowMetrics(outShadowSize, outShadowTouchPoint);
+            int width, height;
+            width = getView().getWidth() / 2;
+            height = getView().getHeight() / 2;
+            shadow.setBounds(0, 0, width, height);
+            outShadowSize.set(width, height);
+            outShadowTouchPoint.set(width / 2, height / 2);
+        }
+
+        @Override
+        public void onDrawShadow (Canvas canvas) {
+            super.onDrawShadow(canvas);
+        }
     }
 
     /**
@@ -310,13 +342,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 workouts.setExercisesList(newExerciseList);
 
-                if (workouts.getTotalTime() > 60) {
-                    double minute = TimeUnit.SECONDS.toMinutes((workouts.getTotalTime())) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
-                    double seconds = ((workouts.getTotalTime()) % (60 * minute)) * .01;
+
+
+                if (workouts.getTotalTime() >= 60) {
+                    double minute = TimeUnit.SECONDS.toMinutes(workouts.getTotalTime()) - (TimeUnit.SECONDS.toHours(workouts.getTotalTime()) * 60);
+                    double seconds = (workouts.getTotalTime() % (60 * minute)) * .01;
                     workoutTime.setText(String.valueOf(minute + seconds));
                 }
                 else {
-                    workoutTime.setText(String.valueOf(workouts.getTotalTime()));
+                    workoutTime.setText(String.valueOf(workouts.getTotalTime() + " seconds"));
                 }
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 workoutName.setText(workouts.getName());
@@ -332,10 +366,12 @@ public class MainActivity extends AppCompatActivity {
                 if (multiSelect) {
                     if (selectedWorkoutList.contains(workouts)) {
                         selectedWorkoutList.remove(workouts);
+                        myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                     }
                     else {
                         selectedWorkoutList.add(workouts);
                         myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
+
                     }
                     if (selectedWorkoutList.size() == 1) {
                         actionMode.setTitle(selectedWorkoutList.size() +
@@ -356,6 +392,18 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, getString(R.string.on_long_click));
                 MainActivity.this.startActionMode(callbacks);
                 selectItem(workoutList.get(getAdapterPosition()));
+                if (multiSelect) {
+                    ClipData.Item item = new ClipData.Item((Intent) view.getTag());
+
+                    ClipData dragData = new ClipData(
+                            (CharSequence) view.getTag(),
+                            new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN },
+                            item);
+
+                    View.DragShadowBuilder myShadow = new MyDragShadowBuilder(this.myCardView1);
+
+                    view.startDrag(dragData, myShadow, null, 0);
+                }
                 return true;
             }
 
@@ -383,12 +431,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+
+
+
         /**
          Constructor for Adapter that allows a menu bar to be created with menu items that can be clicked on.
          */
         public CustomAdapter () {
             super();
-
             callbacks = new ActionMode.Callback() {
 
                 /**
@@ -401,10 +451,8 @@ public class MainActivity extends AppCompatActivity {
                 public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                     multiSelect = true;
                     actionMode = mode;
-
                     MenuInflater menuInflater = getMenuInflater();
                     menuInflater.inflate(R.menu.cam_menu, menu);
-
                     return true;
                 }
 
@@ -430,9 +478,10 @@ public class MainActivity extends AppCompatActivity {
                     if (menuItem.getItemId() == R.id.camDeleteItem) {
                         for (int i = 0; i < workoutList.size(); i++) {
                             if (selectedWorkoutList.contains(workoutList.get(i))) {
-                                workoutList.remove(i);
-
                                 helper.deleteWorkout(workoutList.get(i));
+                                helper.deleteExerciseList(workoutList.get(i).getId());
+                                workoutList.get(i).getExercisesList().clear();
+                                workoutList.remove(i);
                                 notifyItemRemoved(i);
                             }
                         }

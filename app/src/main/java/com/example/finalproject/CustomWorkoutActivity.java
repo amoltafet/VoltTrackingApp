@@ -105,12 +105,14 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             });
 
             totalTimeView = findViewById(R.id.totalTime);
-            if (Long.parseLong(totalTime) > 60) {
+            if (Long.parseLong(totalTime) >= 60) {
                 double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(totalTime)) - (TimeUnit.SECONDS.toHours(Long.parseLong(totalTime)) * 60);
                 double seconds = (Long.parseLong(totalTime) % (60 * minute)) * .01;
                 totalTimeView.setText(String.valueOf(minute + seconds));
             }
-            totalTimeView.setText(String.valueOf(totalTime));
+            else {
+                totalTimeView.setText(String.valueOf(totalTime + " seconds"));
+            }
 
             Button saveWorkoutButton = findViewById(R.id.saveWorkoutButton);
             saveWorkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -124,7 +126,15 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                         Toast.makeText(CustomWorkoutActivity.this, "Enter a workout name", Toast.LENGTH_LONG).show();
                     }
                     else {
-                        saved = true;
+                        Intent intent = new Intent();
+                        intent.putExtra("name", titleTextView.getText().toString());
+                        intent.putExtra("totalTime", getTotalTime());
+                        intent.putExtra("exerciseList", (Serializable) exerciseList);
+                        intent.putExtra("parentId", 0);
+                        intent.putExtra("run", false);
+                        intent.putExtra(getString(R.string.position), position);
+                        CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
+                        CustomWorkoutActivity.this.finish();
                     }
                 }
             });
@@ -132,7 +142,6 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             Button playWorkoutButton = findViewById(R.id.playButton);
 
             playWorkoutButton.setOnClickListener(view -> {
-                if (saved) {
                     Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
                     intent1.putExtra("name", titleTextView.getText().toString());
                     intent1.putExtra("totalTime", String.valueOf(getTotalTime()));
@@ -141,22 +150,17 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                     intent1.putExtra("run", false);
                     intent1.putExtra(getString(R.string.position), position);
                     startActivity(intent1);
-                }
-                else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("Do you want to save before leaving?")
-                            .setPositiveButton("Yes", null)
-                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel(); CustomWorkoutActivity.this.finish();
-                                }
-                            });
-
-                    builder.show();
-                }
             });
         }
+    }
+
+    /**
+     On click the keyboard will disappear.
+     * @param view the view of the item being clicked.
+     */
+    public void hideKeyboard (View view) {
+        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
     public int getTotalTime () {
@@ -188,31 +192,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected (@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                if (saved) {
-                    Intent intent = new Intent();
-                    intent.putExtra("name", titleTextView.getText().toString());
-                    intent.putExtra("totalTime", getTotalTime());
-                    intent.putExtra("exerciseList", (Serializable) exerciseList);
-                    intent.putExtra("parentId", 0);
-                    intent.putExtra("run", false);
-                    intent.putExtra(getString(R.string.position), position);
-                    CustomWorkoutActivity.this.setResult(Activity.RESULT_OK, intent);
-                    CustomWorkoutActivity.this.finish();
-                }
-                else {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setTitle("Do you want to save before leaving?")
-                            .setPositiveButton("Yes", null)
-                            .setNegativeButton("No", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    dialog.cancel(); CustomWorkoutActivity.this.finish();
-                                }
-                            });
-
-                    builder.show();
-                }
-
+                this.finish();
                 return true;
             case R.id.addMenuExerciseItem:
                 Exercises exercise = new Exercises(parentId);
@@ -229,7 +209,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
         boolean multiSelect = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
-        List<Exercises> selectedVideos = new ArrayList<>();
+        List<Exercises> selectedExercises = new ArrayList<>();
 
 
         /**
@@ -315,13 +295,13 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                             totalTime = (totalTime * 60) * 100;
                             totalTimeView.setText(String.valueOf(totalTime));
                         }
-                        if (totalTime > 60) {
+                        if (totalTime >= 60) {
                             double minute = TimeUnit.SECONDS.toMinutes(totalTime) - (TimeUnit.SECONDS.toHours(totalTime) * 60);
                             double seconds = (totalTime % (60 * minute)) * .01;
-                            totalTimeView.setText(String.valueOf(minute + seconds));
+                            totalTimeView.setText(String.valueOf(minute  + seconds));
                         }
                         else {
-                            totalTimeView.setText(String.valueOf(totalTime) + "secs");
+                            totalTimeView.setText(totalTime + " seconds");
                         }
                     }
                 });
@@ -346,18 +326,24 @@ public class CustomWorkoutActivity extends AppCompatActivity {
              */
             public void selectItem (Exercises exercises) {
                 if (multiSelect) {
-                    if (selectedVideos.contains(exercises)) {
-                        selectedVideos.remove(exercises);
+                    if (selectedExercises.contains(exercises)) {
+                        selectedExercises.remove(exercises);
+                        myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
+                        workoutName.setInputType(InputType.TYPE_CLASS_TEXT);
+                        workoutTime.setInputType(InputType.TYPE_CLASS_NUMBER);
                     }
                     else {
-                        selectedVideos.add(exercises);
+                        selectedExercises.add(exercises);
                         myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
+
+                        workoutName.setInputType(InputType.TYPE_NULL);
+                        workoutTime.setInputType(InputType.TYPE_NULL);
                     }
-                    if (selectedVideos.size() == 1) {
-                        actionMode.setTitle(selectedVideos.size() +
+                    if (selectedExercises.size() == 1) {
+                        actionMode.setTitle(selectedExercises.size() +
                                 getString(R.string.item_selected));
                     }
-                    actionMode.setTitle(selectedVideos.size() +
+                    actionMode.setTitle(selectedExercises.size() +
                             getString(R.string.items_selected));
                 }
             }
@@ -380,23 +366,11 @@ public class CustomWorkoutActivity extends AppCompatActivity {
              */
             @Override
             public void onClick (View view) {
-                /*if (multiSelect) {
+                if (multiSelect) {
                     selectItem(exerciseList.get(getAdapterPosition()));
                 }
-                else {
-                    int position = getAdapterPosition();
-                    Intent intent = new Intent(VideoDetailActivity.this, VideoDetailActivity.class);
-                    intent.putExtra("name", exerciseList.get(position).getName());
-                    intent.putExtra("totalTime", exerciseList.get(position).getTotalTime());
-                    intent.putExtra("exerciseList", (Parcelable) exerciseList.get(position).getExercisesList());
-                    intent.putExtra(getString(R.string.position), position);
-                    launcher.launch(intent);
-                } */
             }
-            public void startOnContextActionMode () {
-                CustomWorkoutActivity.this.startActionMode(callbacks);
-                selectItem(exerciseList.get(getAdapterPosition()));
-            }
+
         }
 
         /**
@@ -440,11 +414,12 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                  */
                 @Override
                 public boolean onActionItemClicked (ActionMode actionMode, MenuItem menuItem) {
-                    if (menuItem.getItemId() == R.id.menuOptionExerciseItem) {
+                    if (menuItem.getItemId() == R.id.camDeleteItem) {
                         for (int i = 0; i < exerciseList.size(); i++) {
-                            if (selectedVideos.contains(exerciseList.get(i))) {
+                            if (selectedExercises.contains(exerciseList.get(i))) {
                                 exerciseList.remove(i);
-                                notifyItemRemoved(i);
+                                selectedExercises.remove(i);
+                                adapter.notifyItemRemoved(i);
                             }
                         }
                         actionMode.finish();
@@ -460,13 +435,10 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                 @Override
                 public void onDestroyActionMode (ActionMode actionMode) {
                     multiSelect = false;
-                    for (Exercises exercises : selectedVideos) {
-                        exerciseList.remove(exercises);
-                    }
-                    selectedVideos.clear();
+                    selectedExercises.clear();
 
                     for (int i = 0; i < exerciseList.size(); i++) {
-                        notifyItemChanged(i);
+                        adapter.notifyItemChanged(i);
                     }
                 }
             };
@@ -507,12 +479,4 @@ public class CustomWorkoutActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     On click the keyboard will disappear.
-     * @param view the view of the item being clicked.
-     */
-    public void hideKeyboard (View view) {
-        InputMethodManager inputMethodManager =(InputMethodManager)getSystemService(Activity.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
 }
