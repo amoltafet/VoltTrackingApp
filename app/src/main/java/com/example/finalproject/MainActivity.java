@@ -22,8 +22,15 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -265,6 +272,31 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private static class MyDragShadowBuilder extends View.DragShadowBuilder {
+        private static Drawable shadow;
+
+        public MyDragShadowBuilder (View v) {
+            super(v);
+            shadow = new ColorDrawable(Color.LTGRAY);
+        }
+
+        @Override
+        public void onProvideShadowMetrics (Point outShadowSize, Point outShadowTouchPoint) {
+            super.onProvideShadowMetrics(outShadowSize, outShadowTouchPoint);
+            int width, height;
+            width = getView().getWidth() / 2;
+            height = getView().getHeight() / 2;
+            shadow.setBounds(0, 0, width, height);
+            outShadowSize.set(width, height);
+            outShadowTouchPoint.set(width / 2, height / 2);
+        }
+
+        @Override
+        public void onDrawShadow (Canvas canvas) {
+            super.onDrawShadow(canvas);
+        }
+    }
+
     /**
      Associated the data with the viewHolder class.
      */
@@ -339,6 +371,7 @@ public class MainActivity extends AppCompatActivity {
                     else {
                         selectedWorkoutList.add(workouts);
                         myCardView1.setCardBackgroundColor(getResources().getColor(R.color.teal_200));
+
                     }
                     if (selectedWorkoutList.size() == 1) {
                         actionMode.setTitle(selectedWorkoutList.size() +
@@ -359,6 +392,18 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, getString(R.string.on_long_click));
                 MainActivity.this.startActionMode(callbacks);
                 selectItem(workoutList.get(getAdapterPosition()));
+                if (multiSelect) {
+                    ClipData.Item item = new ClipData.Item((Intent) view.getTag());
+
+                    ClipData dragData = new ClipData(
+                            (CharSequence) view.getTag(),
+                            new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN },
+                            item);
+
+                    View.DragShadowBuilder myShadow = new MyDragShadowBuilder(this.myCardView1);
+
+                    view.startDrag(dragData, myShadow, null, 0);
+                }
                 return true;
             }
 
@@ -386,12 +431,14 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+
+
+
         /**
          Constructor for Adapter that allows a menu bar to be created with menu items that can be clicked on.
          */
         public CustomAdapter () {
             super();
-
             callbacks = new ActionMode.Callback() {
 
                 /**
@@ -404,10 +451,8 @@ public class MainActivity extends AppCompatActivity {
                 public boolean onCreateActionMode(ActionMode mode, Menu menu) {
                     multiSelect = true;
                     actionMode = mode;
-
                     MenuInflater menuInflater = getMenuInflater();
                     menuInflater.inflate(R.menu.cam_menu, menu);
-
                     return true;
                 }
 

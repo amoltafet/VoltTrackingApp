@@ -192,6 +192,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected (@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
+                this.finish();
                 return true;
             case R.id.addMenuExerciseItem:
                 Exercises exercise = new Exercises(parentId);
