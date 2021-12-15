@@ -20,6 +20,7 @@ import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.InputType;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,9 +30,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.CountDownTimer;
-import android.view.ActionMode;
-import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,9 +47,8 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
     private long steps = 0;
-
-    int i = 0;
-
+    int i=0;
+    int j;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -69,8 +66,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
         recyclerView.setAdapter(adapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Play a Workout");
-
+        getSupportActionBar().setTitle("Play Workout");
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -79,30 +75,39 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
             exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
             int parentId = intent.getIntExtra("parentId", 0);
             int position = intent.getIntExtra("position", 0);
-
+            boolean run = intent.getBooleanExtra("run", false);
             TextView timeView = findViewById(R.id.timeLeft);
             if (Long.parseLong(time) > 60) {
                 double minute = TimeUnit.SECONDS.toMinutes(Long.parseLong(time)) - (TimeUnit.SECONDS.toHours(Long.parseLong(time)) * 60);
-
                 double seconds = (Long.parseLong(time) % (60 * minute)) * .01;
                 timeView.setText(String.valueOf(minute + seconds));
             } else {
                 timeView.setText(String.valueOf(time));
             }
             getSupportActionBar().setTitle(name);
+            int totalTime = 0;
+            for(int i = 0; i < exerciseList.size(); i++) {
+                totalTime += exerciseList.get(i).getTime();
+            }
 
             TextView nameView = findViewById(R.id.name);
-            nameView.setText(exerciseList.get(0).getName());
-
-
-
-
             TextView timeLeft = findViewById(R.id.timeLeft);
-            ProgressBar mProgressBar;
-            CountDownTimer mCountDownTimer;
-
-            mProgressBar=(ProgressBar)findViewById(R.id.progressBar);
-                i = 1;
+            ProgressBar mProgressBar = (ProgressBar)findViewById(R.id.progressBar);
+            List<CountDownTimer> timers = new ArrayList<>();
+            for(int i = 0; i < exerciseList.size(); i++) {
+                timers.add(new CountDownTimer(exerciseList.get(i).getTime() * 1000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        timeLeft.setText(String.valueOf(millisUntilFinished / 1000));
+                    }
+                    @Override
+                    public void onFinish() {
+                        timeLeft.setText("done!");
+                    }
+                });
+            }
+            if(run) {
+                /*i = 1;
                 mProgressBar.setProgress(i);
                 mCountDownTimer=new CountDownTimer(100*1000,1000) {
                     @Override
@@ -119,7 +124,15 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
                     }
                 };
-                mCountDownTimer.start();
+                mCountDownTimer.start(); */
+            } else {
+                for(int i = 0; i < exerciseList.size(); i++) {
+                    nameView.setText(exerciseList.get(i).getName());
+                    timers.get(i).start();
+
+                    //timers.get(i).notifyAll();
+                }
+            }
 
 
 
@@ -201,7 +214,9 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
             public void updateView(Exercises b) {
                 myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
                 myText1.setText(b.getName());
-                myText1.setPaintFlags(0);
+                myTime.setText(String.valueOf(b.getTime()));
+                myText1.setInputType(InputType.TYPE_NULL);
+                myTime.setInputType(InputType.TYPE_NULL);
             }
 
             @Override
@@ -235,3 +250,4 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
         }
     }
 }
+
