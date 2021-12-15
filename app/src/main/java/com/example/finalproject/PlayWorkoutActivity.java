@@ -4,6 +4,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,9 +19,14 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.CountDownTimer;
@@ -43,7 +49,9 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
     private long steps = 0;
+
     int i = 0;
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -62,6 +70,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("Play a Workout");
+
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -84,6 +93,36 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
             TextView nameView = findViewById(R.id.name);
             nameView.setText(exerciseList.get(0).getName());
+
+
+
+
+            TextView timeLeft = findViewById(R.id.timeLeft);
+            ProgressBar mProgressBar;
+            CountDownTimer mCountDownTimer;
+
+            mProgressBar=(ProgressBar)findViewById(R.id.progressBar);
+                i = 1;
+                mProgressBar.setProgress(i);
+                mCountDownTimer=new CountDownTimer(100*1000,1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        i++;
+                        mProgressBar.setProgress((int)i);
+                        timeLeft.setText(String.valueOf((int)i));
+
+                    }
+                    @Override
+                    public void onFinish() {
+                        mProgressBar.setProgress(0);
+                        mProgressBar.setVisibility(View.GONE);
+
+                    }
+                };
+                mCountDownTimer.start();
+
+
+
 //        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
 //        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 //
@@ -146,26 +185,53 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
     class CustomAdapter extends RecyclerView.Adapter<PlayWorkoutActivity.CustomAdapter.CustomViewHolder> {
 
+        class CustomViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+            CardView myCardView1;
+            TextView myText1;
+            TextView myTime;
+            public CustomViewHolder(@NonNull View itemView) {
+                super(itemView);
+                myCardView1 = itemView.findViewById(R.id.exercise_card);
+                myText1 = itemView.findViewById(R.id.exercise_name);
+                myTime = itemView.findViewById(R.id.exercise_time);
+                itemView.setOnClickListener(this);
+                itemView.setOnLongClickListener(this);
+            }
+
+            public void updateView(Exercises b) {
+                myCardView1.setCardBackgroundColor(getResources().getColor(R.color.white));
+                myText1.setText(b.getName());
+                myText1.setPaintFlags(0);
+            }
+
+            @Override
+            public void onClick(View v) {
+            }
+
+            @Override
+            public boolean onLongClick(View v) {
+                return true; // false means this event handler did not handle or "consume" the event
+            }
+        }
+
+
         @NonNull
         @Override
         public CustomViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            return null;
+            View view = LayoutInflater.from(PlayWorkoutActivity.this)
+                    .inflate(R.layout.exercise_card, parent, false);
+            return new CustomViewHolder(view);
         }
 
         @Override
         public void onBindViewHolder(@NonNull CustomViewHolder holder, int position) {
-
+            Exercises b = exerciseList.get(position);
+            holder.updateView(b);
         }
 
         @Override
         public int getItemCount() {
-            return 0;
-        }
-
-        public class CustomViewHolder extends RecyclerView.ViewHolder {
-            public CustomViewHolder(@NonNull View itemView) {
-                super(itemView);
-            }
+            return exerciseList.size();
         }
     }
 }
