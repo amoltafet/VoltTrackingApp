@@ -135,7 +135,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                 if (saved) {
                     Intent intent1 = new Intent(CustomWorkoutActivity.this, PlayWorkoutActivity.class);
                     intent1.putExtra("name", titleTextView.getText().toString());
-                    intent1.putExtra("totalTime", getTotalTime());
+                    intent1.putExtra("totalTime", String.valueOf(getTotalTime()));
                     intent1.putExtra("exerciseList", (Serializable) exerciseList);
                     intent1.putExtra("parentId", 0);
                     intent1.putExtra("run", false);
@@ -224,7 +224,6 @@ public class CustomWorkoutActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 
     class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
         boolean multiSelect = false;
