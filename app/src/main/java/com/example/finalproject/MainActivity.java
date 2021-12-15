@@ -35,6 +35,7 @@ import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -59,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     WorkoutListOpenHelper helper;
     List<WorkoutList> workoutList;
     private String workoutName = "";
+    int positionChanged = 0;
 
     /**
      Handles the functionality of when the activity is created.
@@ -114,7 +116,6 @@ public class MainActivity extends AppCompatActivity {
                                     exercises = helper.getAllExercisesLists();
                                     workoutList.get(i).getExercisesList().clear();
 
-
                                     for (int j = 0; j < exercises.size(); j++) {
                                         if (exercises.get(j).getParentId() == helper.getAllWorkoutLists().get(i).getId()) {
                                             workoutList.get(i).getExercisesList().add(exercises.get(j));
@@ -141,7 +142,8 @@ public class MainActivity extends AppCompatActivity {
                             adapter.notifyItemChanged(workoutList.size());
                         }
                     }
-                });
+                }
+        );
         workoutList = helper.getAllWorkoutLists();
 
         for (int i = 0; i < helper.getAllWorkoutLists().size(); i++) {
@@ -153,10 +155,10 @@ public class MainActivity extends AppCompatActivity {
                 allExercises.add(exercise);
 
         }
+
         for (WorkoutList workout: workoutList) {
             workout.getExercisesList().clear();
         }
-
 
         for (int i = 0; i < workoutList.size(); i++) {
             for (int j = 0; j < allExercises.size(); j++) {
@@ -294,6 +296,43 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDrawShadow (Canvas canvas) {
             super.onDrawShadow(canvas);
+
+        }
+    }
+
+    private class MyDragEventListener implements View.OnDragListener {
+
+        public boolean onDrag (View v, DragEvent event) {
+            final int action = event.getAction();
+            float firstYPosition = 0;
+
+            switch (action) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    if (event.getClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
+                        v.setVisibility(View.INVISIBLE);
+                        firstYPosition = event.getY();
+                        return true;
+                    }
+                    return false;
+                case DragEvent.ACTION_DROP:
+                    float positionY = event.getY();
+                    if (positionY > firstYPosition) {
+                        positionChanged = 1;
+                    }
+                    else if (positionY < firstYPosition) {
+                        positionChanged = -1;
+                    }
+                    v.invalidate();
+                    return true;
+
+                case DragEvent.ACTION_DRAG_ENDED:
+                    v.setVisibility(View.VISIBLE);
+                    v.invalidate();
+                    return true;
+                default:
+                    break;
+            }
+            return false;
         }
     }
 
@@ -302,6 +341,7 @@ public class MainActivity extends AppCompatActivity {
      */
     class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
         boolean multiSelect = false;
+        boolean drag = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
         List<WorkoutList> selectedWorkoutList = new ArrayList<>();
@@ -393,16 +433,57 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActionMode(callbacks);
                 selectItem(workoutList.get(getAdapterPosition()));
                 if (multiSelect) {
-                    ClipData.Item item = new ClipData.Item((Intent) view.getTag());
+                    multiSelect = false;
+                    drag = true;
 
-                    ClipData dragData = new ClipData(
-                            (CharSequence) view.getTag(),
+                    ClipData.Item item = new ClipData.Item((Intent) view.getTag());
+                    ClipData dragData = new ClipData((CharSequence) view.getTag(),
                             new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN },
                             item);
 
                     View.DragShadowBuilder myShadow = new MyDragShadowBuilder(this.myCardView1);
-
                     view.startDrag(dragData, myShadow, null, 0);
+
+                    MyDragEventListener dragListen = new MainActivity.MyDragEventListener();
+                    view.setOnDragListener(dragListen);
+
+                    myCardView1.setVisibility(View.INVISIBLE);
+                    while (drag) {
+                        if (positionChanged == -1) {
+                            if ((workoutList.size() - 1) != getAdapterPosition()) {
+                                for (int i = 0; i < workoutList.size(); i++) {
+                                    if (i == getAdapterPosition()) {
+                                        WorkoutList temp = new WorkoutList();
+                                        temp = workoutList.get(i);
+                                        workoutList.get(i).setEqual(workoutList.get(i - 1));
+                                        workoutList.get(i - 1).setEqual(temp);
+                                        adapter.notifyItemChanged(i);
+                                        adapter.notifyItemChanged(i + 1);
+                                    }
+                                }
+                            }
+                        } else if (positionChanged == 1) {
+                            if (0 != getAdapterPosition()) {
+                                for (int i = 0; i < workoutList.size(); i++) {
+                                    if (i == getAdapterPosition()) {
+                                        WorkoutList temp = new WorkoutList();
+                                        temp = workoutList.get(i);
+                                        workoutList.get(i).setEqual(workoutList.get(i + 1));
+                                        workoutList.get(i - 1).setEqual(temp);
+                                        adapter.notifyItemChanged(i);
+                                        adapter.notifyItemChanged(i - 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    myCardView1.setVisibility(View.VISIBLE);
+                    drag = false;
+                    multiSelect = true;
+
+                    for (int i = 0; i < workoutList.size(); i++) {
+                        adapter.notifyItemChanged(i);
+                    }
                 }
                 return true;
             }

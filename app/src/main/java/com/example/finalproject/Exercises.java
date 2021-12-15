@@ -23,7 +23,6 @@ public class Exercises implements Serializable {
     private String name;
     private int time;
 
-
     public Exercises (String name, int time) {
         this.id = -1;
         this.name = name;

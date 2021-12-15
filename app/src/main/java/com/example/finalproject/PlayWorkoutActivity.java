@@ -29,6 +29,9 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.CountDownTimer;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +49,9 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
     private long steps = 0;
-    int i=0;
+
+    int i = 0;
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -64,7 +69,8 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
         recyclerView.setAdapter(adapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Play Workout");
+        getSupportActionBar().setTitle("Play a Workout");
+
 
         Intent intent = getIntent();
         if (intent != null) {
@@ -87,6 +93,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
 
             TextView nameView = findViewById(R.id.name);
             nameView.setText(exerciseList.get(0).getName());
+
 
 
 
@@ -113,7 +120,6 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
                     }
                 };
                 mCountDownTimer.start();
-
 
 
 
