@@ -10,8 +10,8 @@
         app:showAsAction="always"
         />
     <item
-        android:id="@+id/menuOptionExerciseItem"
-        android:icon="@android:drawable/ic_menu_manage"
+        android:id="@+id/menuDeleteExerciseItem"
+        android:icon="@android:drawable/ic_menu_delete"
         android:title="@string/delete_item"
         app:showAsAction="always" />
 </menu>

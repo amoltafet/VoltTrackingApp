@@ -22,6 +22,13 @@ public class WorkoutList {
     private List<Exercises> exercisesList;
     private boolean run;
 
+    public WorkoutList ()  {
+        this.id = -1;
+        this.name = "";
+        this.exercisesList = new ArrayList<>();
+        this.totalTime = 0;
+        this.run = false;
+    }
     /**
      Creates an arrayList of Videos.
      */
@@ -86,5 +93,13 @@ public class WorkoutList {
 
     public void setRun (boolean run) {
         this.run = run;
+    }
+
+    public void setEqual (WorkoutList workoutList) {
+        this.id = workoutList.getId();
+        this.name = workoutList.getName();
+        this.exercisesList = workoutList.getExercisesList();
+        this.totalTime = workoutList.getTotalTime();
+        this.run = workoutList.getRun();
     }
 }

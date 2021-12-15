@@ -23,6 +23,9 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.CountDownTimer;
+import android.view.ActionMode;
+import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +43,7 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
     private long steps = 0;
+    int i = 0;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -57,13 +61,13 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
         recyclerView.setAdapter(adapter);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("Edit a Workout");
+        getSupportActionBar().setTitle("Play a Workout");
 
         Intent intent = getIntent();
         if (intent != null) {
             String name = intent.getStringExtra("name");
             String time = intent.getStringExtra("totalTime");
-            List<Exercises> exercises = (List<Exercises>) intent.getSerializableExtra("exerciseList");
+            exerciseList = (List<Exercises>) intent.getSerializableExtra("exerciseList");
             int parentId = intent.getIntExtra("parentId", 0);
             int position = intent.getIntExtra("position", 0);
 
@@ -76,9 +80,10 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
             } else {
                 timeView.setText(String.valueOf(time));
             }
+            getSupportActionBar().setTitle(name);
 
             TextView nameView = findViewById(R.id.name);
-            nameView.setText(name);
+            nameView.setText(exerciseList.get(0).getName());
 //        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
 //        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 //

@@ -22,13 +22,20 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Activity;
-import android.content.DialogInterface;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.Intent;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.ActionMode;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -57,6 +64,7 @@ public class CustomWorkoutActivity extends AppCompatActivity {
     TextView totalTimeView;
     List<Exercises> exerciseList;
     EditText titleTextView;
+    int positionChanged = 0;
     int position;
     int parentId;
     boolean saved;
@@ -199,15 +207,88 @@ public class CustomWorkoutActivity extends AppCompatActivity {
                 exerciseList.add(exercise);
                 adapter.notifyItemChanged(exerciseList.size());
                 return true;
-            case R.id.menuOptionExerciseItem:
+            case R.id.menuDeleteExerciseItem:
+                AlertDialog.Builder builder = new AlertDialog.Builder(CustomWorkoutActivity.this);
+                int initialListSize = exerciseList.size();
+                builder = new AlertDialog.Builder(CustomWorkoutActivity.this);
+                builder.setTitle("Delete All Workouts")
+                        .setMessage("Are you sure you want to delete all of the workouts?")
+                        .setPositiveButton(getString(R.string.yes), (dialogInterface, i) -> {
+                            for (int j = 0; j < initialListSize; j++) {
+                                exerciseList.remove(0);
+                            }
+                            exerciseList.clear();
+                        })
+                        .setNegativeButton(getString(R.string.no), null).show();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private static class MyDragShadowBuilder extends View.DragShadowBuilder {
+        private static Drawable shadow;
+
+        public MyDragShadowBuilder (View v) {
+            super(v);
+            shadow = new ColorDrawable(Color.LTGRAY);
+        }
+
+        @Override
+        public void onProvideShadowMetrics (Point outShadowSize, Point outShadowTouchPoint) {
+            super.onProvideShadowMetrics(outShadowSize, outShadowTouchPoint);
+            int width, height;
+            width = getView().getWidth() / 2;
+            height = getView().getHeight() / 2;
+            shadow.setBounds(0, 0, width, height);
+            outShadowSize.set(width, height);
+            outShadowTouchPoint.set(width / 2, height / 2);
+        }
+
+        @Override
+        public void onDrawShadow (Canvas canvas) {
+            super.onDrawShadow(canvas);
+        }
+    }
+
+    private class MyDragEventListener implements View.OnDragListener {
+
+        public boolean onDrag (View v, DragEvent event) {
+            final int action = event.getAction();
+            float firstYPosition = 0;
+
+            switch (action) {
+                case DragEvent.ACTION_DRAG_STARTED:
+                    if (event.getClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
+                        v.setVisibility(View.INVISIBLE);
+                        firstYPosition = event.getY();
+                        return true;
+                    }
+                    return false;
+                case DragEvent.ACTION_DROP:
+                    float positionY = event.getY();
+                    if (positionY > firstYPosition) {
+                        positionChanged = 1;
+                    }
+                    else if (positionY < firstYPosition) {
+                        positionChanged = -1;
+                    }
+                    v.invalidate();
+                    return true;
+
+                case DragEvent.ACTION_DRAG_ENDED:
+                    v.setVisibility(View.VISIBLE);
+                    v.invalidate();
+                    return true;
+                default:
+                    break;
+            }
+            return false;
+        }
+    }
 
     class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
         boolean multiSelect = false;
+        boolean drag = false;
         ActionMode actionMode;
         ActionMode.Callback callbacks;
         List<Exercises> selectedExercises = new ArrayList<>();
@@ -358,6 +439,24 @@ public class CustomWorkoutActivity extends AppCompatActivity {
             public boolean onLongClick (View view) {
                 CustomWorkoutActivity.this.startActionMode(callbacks);
                 selectItem(exerciseList.get(getAdapterPosition()));
+                if (multiSelect) {
+                    multiSelect = false;
+                    drag = true;
+                    ClipData.Item item = new ClipData.Item((Intent) view.getTag());
+
+                    ClipData dragData = new ClipData(
+                            (CharSequence) view.getTag(),
+                            new String[] { ClipDescription.MIMETYPE_TEXT_PLAIN },
+                            item);
+
+                    View.DragShadowBuilder myShadow = new CustomWorkoutActivity.MyDragShadowBuilder(this.myCardView1);
+                    view.startDrag(dragData, myShadow, null, 0);
+
+                    MyDragEventListener dragListen = new CustomWorkoutActivity.MyDragEventListener();
+                    view.setOnDragListener(dragListen);
+                    drag = false;
+                    multiSelect = true;
+                }
                 return true;
             }
 
