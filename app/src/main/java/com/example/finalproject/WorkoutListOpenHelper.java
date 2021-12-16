@@ -31,8 +31,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
     final String WORKOUT_LIST_ID = "_id";
     final String WORKOUT_LIST_NAME = "name";
     final String WORKOUT_TOTAL_TIME = "totalTime";
-    final String WORKOUT_RUN = "run";
-
     final String EXERCISE_LIST_TABLE = "child_list";
     final String EXERCISE_LIST_ID = "_id";
     final String EXERCISE_WORKOUT_LIST_ID = "parent_id";
@@ -48,8 +46,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         String CREATE_MAIN_LIST_TABLE = "CREATE TABLE " + WORKOUT_LIST_TABLE + "("
                 + WORKOUT_LIST_ID + " INTEGER PRIMARY KEY,"
                 + WORKOUT_LIST_NAME + " TEXT,"
-                + WORKOUT_TOTAL_TIME + " INTEGER,"
-                + WORKOUT_RUN + " STRING)";
+                + WORKOUT_TOTAL_TIME + " INTEGER)";
 
         String CREATE_TABLE_CHILD_LIST = "CREATE TABLE " + EXERCISE_LIST_TABLE + "("
                 + EXERCISE_LIST_ID + " INTEGER PRIMARY KEY,"
@@ -72,7 +69,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(WORKOUT_LIST_NAME, workouts.getName());
         values.put(WORKOUT_TOTAL_TIME, workouts.getTotalTime());
-        values.put(WORKOUT_RUN, String.valueOf(workouts.getRun()));
         db.insert(WORKOUT_LIST_TABLE, null, values);
         db.close();
     }
@@ -118,13 +114,11 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         Cursor cursor = getSelectAllWorkoutsCursor();
 
         while (cursor.moveToNext()) {
-
             int id = cursor.getInt(0);
             String name = cursor.getString(1);
             int totalTime = cursor.getInt(2);
-            String run = cursor.getString(3);
             List <Exercises> exercisesList = getAllExercisesLists();
-            WorkoutList workout = new WorkoutList(id, name, exercisesList, totalTime, Boolean.getBoolean(run));
+            WorkoutList workout = new WorkoutList(id, name, exercisesList, totalTime, false);
             workouts.add(workout);
         }
         cursor.close();
@@ -140,7 +134,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         Cursor exercise_cursor = getSelectAllExercisesCursor();
 
         while (exercise_cursor.moveToNext()) {
-
             int exerciseId = exercise_cursor.getInt(0);
             int parentId = exercise_cursor.getInt(1);
             String exerciseName = exercise_cursor.getString(2);
@@ -158,8 +151,7 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(WORKOUT_LIST_TABLE, new String[]{
                         WORKOUT_LIST_ID,
                         WORKOUT_LIST_NAME,
-                        WORKOUT_TOTAL_TIME,
-                        WORKOUT_RUN},
+                        WORKOUT_TOTAL_TIME},
                 null, null, null,
                 null, null);
         return cursor;
@@ -181,7 +173,6 @@ public class WorkoutListOpenHelper extends SQLiteOpenHelper {
         ContentValues contentValues = new ContentValues();
         contentValues.put(WORKOUT_LIST_NAME, workout.getName());
         contentValues.put(WORKOUT_TOTAL_TIME, workout.getTotalTime());
-        contentValues.put(WORKOUT_RUN, workout.getRun());
 
         SQLiteDatabase db = getWritableDatabase();
         db.update(WORKOUT_LIST_TABLE, contentValues, WORKOUT_LIST_ID + "=?",

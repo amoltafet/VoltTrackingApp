@@ -23,6 +23,9 @@ import android.os.CountDownTimer;
 import android.text.InputType;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -37,7 +40,7 @@ import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEventListener*/ {
+public class PlayWorkoutActivity extends AppCompatActivity implements SensorEventListener {
     ActivityResultLauncher<Intent> launcher;
     List<Exercises> exerciseList;
     PlayWorkoutActivity.CustomAdapter adapter;
@@ -48,8 +51,8 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
     private TextView stepsTakenTextView;
     private int ACTIVITY_REQUEST_CODE = 1;
     private long steps = 0;
-    int i=0;
-    int j;
+    private int i = 0;
+    private int j;
 
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -87,16 +90,55 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
             }
             getSupportActionBar().setTitle(name);
             int totalTime = 0;
-            for(int i = 0; i < exerciseList.size(); i++) {
+            for (int i = 0; i < exerciseList.size(); i++) {
                 totalTime += exerciseList.get(i).getTime();
             }
 
             TextView nameView = findViewById(R.id.name);
             TextView timeLeft = findViewById(R.id.timeLeft);
-            ProgressBar mProgressBar = (ProgressBar)findViewById(R.id.progressBar);
+            ProgressBar mProgressBar = (ProgressBar) findViewById(R.id.progressBar);
+            mProgressBar.setIndeterminate(true);
             List<CountDownTimer> timers = new ArrayList<>();
-            for(int i = 0; i < exerciseList.size(); i++) {
+            for (int i = 0; i < exerciseList.size(); i++) {
                 timers.add(new CountDownTimer(exerciseList.get(i).getTime() * 1000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        timeLeft.setText(String.valueOf(millisUntilFinished / 1000));
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        timeLeft.setText("done!");
+                    }
+                });
+            }
+            CountDownTimer mCountDownTimer;
+            if (run) {
+                nameView.setText("Cardio");
+                i = 1;
+                mProgressBar.setProgress(i);
+                mCountDownTimer = new CountDownTimer(100 * 1000, 1000) {
+                    @Override
+                    public void onTick(long millisUntilFinished) {
+                        i++;
+                        mProgressBar.setProgress((int) i);
+                        timeLeft.setText(String.valueOf((int) i));
+
+
+                    }
+
+                    @Override
+                    public void onFinish() {
+                        mProgressBar.setProgress(100);
+                        mProgressBar.setVisibility(View.GONE);
+
+                    }
+                };
+                mCountDownTimer.start();
+            } else {
+                nameView.setText(exerciseList.get(0).getName());
+                System.out.println(totalTime);
+                CountDownTimer mCount = new CountDownTimer(totalTime * 1000, 1000) {
                     @Override
                     public void onTick(long millisUntilFinished) {
                         timeLeft.setText(String.valueOf(millisUntilFinished / 1000));
@@ -105,101 +147,85 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
                     public void onFinish() {
                         timeLeft.setText("done!");
                     }
-                });
-            }
-            CountDownTimer mCountDownTimer;
-            run = false;
-            if(run) {
-                nameView.setText("Cardio");
-                i = 1;
-                mProgressBar.setProgress(i);
-                mCountDownTimer=new CountDownTimer(100*1000,1000) {
-                    @Override
-                    public void onTick(long millisUntilFinished) {
-                        i++;
-                        mProgressBar.setProgress((int)i);
-                        timeLeft.setText(String.valueOf((int)i));
-
-
-                    }
-                    @Override
-                    public void onFinish() {
-                        mProgressBar.setProgress(0);
-                        mProgressBar.setVisibility(View.GONE);
-
-                    }
                 };
-                mCountDownTimer.start();
-            }
-            else {
-                for(int i = 0; i < exerciseList.size(); i++) {
-                    nameView.setText(exerciseList.get(i).getName());
-                    timers.get(i).start();
-                    //timers.get(i).notifyAll();
-                }
+                mCount.start();
             }
 
-
-
-//        stepsTakenTextView = findViewById(R.id.stepsTakenCount);
-//        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-//
-//
-//        Button startRun = findViewById(R.id.startRunButton);
-//        startRun.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//
-//            }
-//        });
-//       if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_DENIED){
-//            //ask for permission
-//            requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
-//        }
+            stepsTakenTextView = findViewById(R.id.stepsTextView);
+            sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_DENIED) {
+                //ask for permission
+                requestPermissions(new String[]{Manifest.permission.ACTIVITY_RECOGNITION}, 0);
+            }
         }
-
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
-//        if (countSensor != null) {
-//            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
-//        } else {
-//            Toast.makeText(this, "Step counter sensor not available", Toast.LENGTH_LONG).show();
-//        }
-//    }
-//
-//    @Override
-//    public void onSensorChanged(SensorEvent event) {
-//        stepsTakenTextView.setText(String.valueOf(event.values[0]));
-//    }
-//
-//    @Override
-//    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-//
-//    }
-//
-//    private void enableActivityMonitor () {
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
-//
-//        }
-//        else {
-//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACTIVITY_REQUEST_CODE);
-//        }
-//    }
-//
-//    @Override
-//    public void onRequestPermissionsResult (int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//
-//        if (requestCode == ACTIVITY_REQUEST_CODE) {
-//            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                enableActivityMonitor();
-//            }
-//        }
-//    }
-
     }
+    /**
+     Creates and displays the options menu.
+     * @param menu the view of the item being clicked.
+     * @return true if the handler consumed the event.
+     */
+    @Override
+    public boolean onCreateOptionsMenu (Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.custom_workout_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    /**
+     Handles events when a menu item is clicked on.
+     * @param item the view of the item being clicked.
+     * @return true if the handler consumed the event.
+     */
+    @Override
+    public boolean onOptionsItemSelected (@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                this.finish();
+                return true;
+        }
+        return false;
+    }
+
+    @Override
+    protected void onResume () {
+        super.onResume();
+        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        if (countSensor != null) {
+            sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
+        } else {
+            Toast.makeText(this, "Step counter sensor not available", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    @Override
+    public void onSensorChanged (SensorEvent event){
+        stepsTakenTextView.setText(String.valueOf(event.values[0]));
+    }
+
+    @Override
+    public void onAccuracyChanged (Sensor sensor,int accuracy){
+    }
+
+    private void enableActivityMonitor () {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACTIVITY_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult ( int requestCode, @NonNull String[] permissions,
+                                             @NonNull int[] grantResults){
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == ACTIVITY_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                enableActivityMonitor();
+            }
+        }
+    }
+
 
     class CustomAdapter extends RecyclerView.Adapter<PlayWorkoutActivity.CustomAdapter.CustomViewHolder> {
 
@@ -255,4 +281,6 @@ public class PlayWorkoutActivity extends AppCompatActivity /*implements SensorEv
         }
     }
 }
+
+
 

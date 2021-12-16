@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                         String name = data.getStringExtra("name");
                         int totalTime = data.getIntExtra("totalTime", 0);
                         List<Exercises> exercises = (List<Exercises>) data.getSerializableExtra(("exerciseList"));
-                        boolean run = data.getBooleanExtra("run", false);
+                        boolean run = false;//data.getBooleanExtra("run", false);
                         int position = data.getIntExtra(getString(R.string.position), 0);
 
                         for (int i = 0; i < workoutList.size(); i++) {
